@@ -1,0 +1,6 @@
+{
+  "files.watcherExclude": {
+    "**/app/mobile/flutter_app/.dart_tool/**": true,
+    "**/app/mobile/flutter_app/build/**": true
+  }
+}

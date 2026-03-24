@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "PocketClaw (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "cwd": "${workspaceFolder}/app/mobile/flutter_app",
+      "deviceId": "chrome"
+    },
+    {
+      "name": "PocketClaw (Windows)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "cwd": "${workspaceFolder}/app/mobile/flutter_app",
+      "deviceId": "windows"
+    },
+    {
+      "name": "PocketClaw (Android device)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "cwd": "${workspaceFolder}/app/mobile/flutter_app"
+    }
+  ]
+}
