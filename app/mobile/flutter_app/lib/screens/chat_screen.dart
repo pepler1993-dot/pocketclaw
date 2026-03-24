@@ -1,4 +1,7 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import '../services/mock_runtime_service.dart';
 import '../widgets/product_widgets.dart';
@@ -29,8 +32,10 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scroll = ScrollController();
+  final SpeechToText _speech = SpeechToText();
 
   late List<_ChatBubble> _messages;
+  bool _speechReady = false;
 
   @override
   void initState() {
@@ -40,15 +45,40 @@ class _ChatScreenState extends State<ChatScreen> {
         author: 'PocketClaw',
         text:
             'You are connected to ${widget.session.providerConfig.displayLabel}. '
-            'Ask for runtime status or diagnostics.',
+            'Ask for runtime status or diagnostics — or tap the microphone to speak.',
         isAssistant: true,
         timestamp: _timeLabel(DateTime.now()),
       ),
     ];
+    _initSpeech();
+  }
+
+  Future<void> _initSpeech() async {
+    final bool available = await _speech.initialize(
+      onError: (error) {
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Speech: ${error.errorMsg}')),
+        );
+      },
+      onStatus: (String status) {
+        if (mounted) {
+          setState(() {});
+        }
+      },
+    );
+    if (mounted) {
+      setState(() => _speechReady = available);
+    }
   }
 
   @override
   void dispose() {
+    if (_speech.isListening) {
+      unawaited(_speech.cancel());
+    }
     _controller.dispose();
     _scroll.dispose();
     super.dispose();
@@ -60,10 +90,55 @@ class _ChatScreenState extends State<ChatScreen> {
     return '$h:$m';
   }
 
+  Future<void> _toggleSpeechInput() async {
+    if (!_speechReady) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Speech recognition is not available on this device.'),
+          ),
+        );
+      }
+      return;
+    }
+    if (_speech.isListening) {
+      await _speech.stop();
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    await _speech.listen(
+      onResult: (result) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _controller.text = result.recognizedWords;
+          _controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: _controller.text.length),
+          );
+        });
+      },
+      listenFor: const Duration(seconds: 120),
+      pauseFor: const Duration(seconds: 4),
+      listenOptions: SpeechListenOptions(
+        listenMode: ListenMode.dictation,
+        partialResults: true,
+      ),
+    );
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   Future<void> _send() async {
     final String text = _controller.text.trim();
     if (text.isEmpty) {
       return;
+    }
+    if (_speech.isListening) {
+      await _speech.stop();
     }
     _controller.clear();
     final DateTime now = DateTime.now();
@@ -115,6 +190,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool listening = _speech.isListening;
+    final ColorScheme colors = Theme.of(context).colorScheme;
+
     return Column(
       children: <Widget>[
         Expanded(
@@ -130,22 +208,22 @@ class _ChatScreenState extends State<ChatScreen> {
               const SizedBox(height: 16),
               SectionCard(
                 title: 'Assistant',
-                subtitle: 'Mock replies (no network yet)',
+                subtitle: 'Mock replies (no network yet) · voice: microphone',
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     CircleAvatar(
                       radius: 18,
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                      backgroundColor: colors.primaryContainer,
                       child: Icon(
                         Icons.smart_toy_outlined,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        color: colors.onPrimaryContainer,
                       ),
                     ),
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Text(
-                        'Try: “runtime status”, “diagnostics”, or ask for a quick health summary.',
+                        'Try: “runtime status”, “diagnostics”, or use the mic for speech-to-text.',
                       ),
                     ),
                   ],
@@ -180,7 +258,17 @@ class _ChatScreenState extends State<ChatScreen> {
                     maxLines: 4,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
+                IconButton.filledTonal(
+                  onPressed: _speechReady ? _toggleSpeechInput : null,
+                  style: IconButton.styleFrom(
+                    backgroundColor: listening ? colors.primaryContainer : null,
+                    foregroundColor: listening ? colors.onPrimaryContainer : null,
+                  ),
+                  tooltip: listening ? 'Stop dictation' : 'Speech to text',
+                  icon: Icon(listening ? Icons.stop_circle_outlined : Icons.mic_none_outlined),
+                ),
+                const SizedBox(width: 4),
                 FilledButton.icon(
                   onPressed: _send,
                   icon: const Icon(Icons.send),

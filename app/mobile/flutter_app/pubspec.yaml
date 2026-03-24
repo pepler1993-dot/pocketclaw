@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   shared_preferences: ^2.3.3
+  speech_to_text: ^7.3.0
 
 dev_dependencies:
   flutter_test:
