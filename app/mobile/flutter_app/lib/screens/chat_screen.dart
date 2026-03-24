@@ -262,17 +262,28 @@ class _ChatScreenState extends State<ChatScreen> {
                 IconButton.filledTonal(
                   onPressed: _speechReady ? _toggleSpeechInput : null,
                   style: IconButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    minimumSize: const Size(40, 40),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     backgroundColor: listening ? colors.primaryContainer : null,
                     foregroundColor: listening ? colors.onPrimaryContainer : null,
                   ),
                   tooltip: listening ? 'Stop dictation' : 'Speech to text',
-                  icon: Icon(listening ? Icons.stop_circle_outlined : Icons.mic_none_outlined),
+                  icon: Icon(
+                    listening ? Icons.stop_circle_outlined : Icons.mic_none_outlined,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 4),
-                FilledButton.icon(
+                IconButton.filled(
                   onPressed: _send,
-                  icon: const Icon(Icons.send),
-                  label: const Text('Send'),
+                  tooltip: 'Send',
+                  style: IconButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    minimumSize: const Size(40, 40),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: const Icon(Icons.send_rounded, size: 22),
                 ),
               ],
             ),
