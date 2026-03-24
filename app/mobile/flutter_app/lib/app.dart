@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'flow/app_flow_controller.dart';
 import 'screens/chat_screen.dart';
 import 'screens/diagnostics_screen.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/provider_setup_screen.dart';
 import 'screens/runtime_screen.dart';
 import 'screens/settings_screen.dart';
 import 'theme/app_theme.dart';
@@ -14,8 +17,54 @@ class PocketClawApp extends StatelessWidget {
     return MaterialApp(
       title: 'PocketClaw',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      home: const _RootShell(),
+      theme: AppTheme.dark(),
+      home: const _AppEntryPoint(),
+    );
+  }
+}
+
+class _AppEntryPoint extends StatefulWidget {
+  const _AppEntryPoint();
+
+  @override
+  State<_AppEntryPoint> createState() => _AppEntryPointState();
+}
+
+class _AppEntryPointState extends State<_AppEntryPoint> {
+  late final AppFlowController _flowController;
+
+  @override
+  void initState() {
+    super.initState();
+    _flowController = AppFlowController();
+  }
+
+  @override
+  void dispose() {
+    _flowController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _flowController,
+      builder: (BuildContext context, Widget? child) {
+        switch (_flowController.step) {
+          case AppFlowStep.onboarding:
+            return OnboardingScreen(
+              onContinue: _flowController.continueFromOnboarding,
+            );
+          case AppFlowStep.providerSetup:
+            return ProviderSetupScreen(
+              currentProvider: _flowController.selectedProvider,
+              onProviderChanged: _flowController.setProvider,
+              onFinish: _flowController.completeSetup,
+            );
+          case AppFlowStep.mainShell:
+            return const _RootShell();
+        }
+      },
     );
   }
 }

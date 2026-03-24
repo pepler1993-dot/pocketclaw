@@ -36,6 +36,51 @@ class ScreenHeader extends StatelessWidget {
   }
 }
 
+class ClawBrandMark extends StatelessWidget {
+  const ClawBrandMark({
+    super.key,
+    this.size = 44,
+    this.showLabel = true,
+  });
+
+  final double size;
+  final bool showLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colors = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: colors.primaryContainer,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: colors.primary.withOpacity(0.45)),
+          ),
+          child: Icon(
+            Icons.adb_rounded,
+            color: colors.primary,
+            size: size * 0.55,
+          ),
+        ),
+        if (showLabel) ...<Widget>[
+          const SizedBox(width: 10),
+          Text(
+            'PocketClaw',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class SectionCard extends StatelessWidget {
   const SectionCard({
     super.key,
