@@ -47,10 +47,10 @@ class RuntimeDeploymentModel {
 
   /// Shown in runtime “mode” line while mock is active.
   String get runtimeModeSummary => switch (kind) {
-        RuntimeDeploymentKind.thisPhone => 'On-device gateway (target)',
-        RuntimeDeploymentKind.homeNetworkLan => 'LAN gateway (target)',
-        RuntimeDeploymentKind.openClawCloud => 'Cloud gateway (target)',
-        RuntimeDeploymentKind.customGateway => 'Custom gateway (target)',
+        RuntimeDeploymentKind.thisPhone => 'On-device gateway',
+        RuntimeDeploymentKind.homeNetworkLan => 'LAN gateway',
+        RuntimeDeploymentKind.openClawCloud => 'Cloud gateway',
+        RuntimeDeploymentKind.customGateway => 'Custom gateway',
       };
 
   factory RuntimeDeploymentModel.fromSelectionLabel(String label) {

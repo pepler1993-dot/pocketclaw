@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../models/provider_config_model.dart';
 import '../models/runtime_deployment_model.dart';
 import '../widgets/product_widgets.dart';
 
 class ProviderSetupScreen extends StatefulWidget {
   const ProviderSetupScreen({
     super.key,
-    required this.currentProvider,
+    required this.providerConfig,
     required this.currentDeployment,
-    required this.onProviderChanged,
+    required this.onModelProfileChanged,
+    required this.onApiConnectionChanged,
+    required this.onCustomApiBaseUrlChanged,
     required this.onDeploymentChanged,
     required this.onFinish,
   });
 
-  final String currentProvider;
+  final ProviderConfigModel providerConfig;
   final String currentDeployment;
-  final ValueChanged<String> onProviderChanged;
+  final ValueChanged<String> onModelProfileChanged;
+  final ValueChanged<String> onApiConnectionChanged;
+  final ValueChanged<String> onCustomApiBaseUrlChanged;
   final ValueChanged<String> onDeploymentChanged;
   final VoidCallback onFinish;
 
@@ -31,38 +36,39 @@ class _ProviderSetupScreenState extends State<ProviderSetupScreen> {
     RuntimeDeploymentModel.labelCustomGateway,
   ];
 
-  static const List<String> _providers = <String>[
-    'Local Runtime',
-    'OpenClaw Cloud',
-    'Custom Endpoint',
-  ];
-
-  late String _selectedProvider;
-  late String _selectedDeployment;
+  late TextEditingController _customUrlController;
 
   @override
   void initState() {
     super.initState();
-    _selectedProvider = widget.currentProvider;
-    _selectedDeployment = widget.currentDeployment;
+    _customUrlController = TextEditingController(
+      text: widget.providerConfig.customApiBaseUrl ?? '',
+    );
   }
 
   @override
   void didUpdateWidget(covariant ProviderSetupScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.currentProvider != oldWidget.currentProvider) {
-      _selectedProvider = widget.currentProvider;
-    }
-    if (widget.currentDeployment != oldWidget.currentDeployment) {
-      _selectedDeployment = widget.currentDeployment;
+    if (widget.providerConfig.customApiBaseUrl != oldWidget.providerConfig.customApiBaseUrl &&
+        widget.providerConfig.customApiBaseUrl != _customUrlController.text) {
+      _customUrlController.text = widget.providerConfig.customApiBaseUrl ?? '';
     }
   }
 
   @override
+  void dispose() {
+    _customUrlController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final ProviderConfigModel c = widget.providerConfig;
+    final bool showCustomUrl = c.apiConnectionLabel == ProviderConfigModel.apiCustomBaseUrl;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Provider setup'),
+        title: const Text('Connection setup'),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -77,14 +83,14 @@ class _ProviderSetupScreenState extends State<ProviderSetupScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Pick where the OpenClaw gateway should run, then choose how models are reached. You can change both later in settings.',
+            'Like the OpenClaw shell: choose where the gateway runs, pick a model profile, then choose how API traffic is routed. You can change this later in settings.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
           ),
           const SizedBox(height: 18),
           Text(
-            'Where OpenClaw runs',
+            '1 · Where OpenClaw runs',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -96,7 +102,7 @@ class _ProviderSetupScreenState extends State<ProviderSetupScreen> {
                   .map(
                     (String label) => RadioListTile<String>(
                       value: label,
-                      groupValue: _selectedDeployment,
+                      groupValue: widget.currentDeployment,
                       activeColor: Theme.of(context).colorScheme.primary,
                       title: Text(label),
                       subtitle: Text(
@@ -106,7 +112,6 @@ class _ProviderSetupScreenState extends State<ProviderSetupScreen> {
                         if (value == null) {
                           return;
                         }
-                        setState(() => _selectedDeployment = value);
                         widget.onDeploymentChanged(value);
                       },
                     ),
@@ -116,7 +121,7 @@ class _ProviderSetupScreenState extends State<ProviderSetupScreen> {
           ),
           const SizedBox(height: 20),
           Text(
-            'Model / API provider',
+            '2 · Model',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -124,26 +129,76 @@ class _ProviderSetupScreenState extends State<ProviderSetupScreen> {
           const SizedBox(height: 8),
           Card(
             child: Column(
-              children: _providers
+              children: ProviderConfigModel.modelProfileLabels
                   .map(
-                    (String provider) => RadioListTile<String>(
-                      value: provider,
-                      groupValue: _selectedProvider,
+                    (String model) => RadioListTile<String>(
+                      value: model,
+                      groupValue: c.modelProfileLabel,
                       activeColor: Theme.of(context).colorScheme.primary,
-                      title: Text(provider),
-                      subtitle: Text(_descriptionFor(provider)),
+                      title: Text(model),
+                      subtitle: Text(_modelSubtitle(model)),
                       onChanged: (String? value) {
                         if (value == null) {
                           return;
                         }
-                        setState(() => _selectedProvider = value);
-                        widget.onProviderChanged(value);
+                        widget.onModelProfileChanged(value);
                       },
                     ),
                   )
                   .toList(),
             ),
           ),
+          const SizedBox(height: 20),
+          Text(
+            '3 · API connection',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Where inference traffic goes (keys are configured in the gateway / environment, not here yet).',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: ProviderConfigModel.apiConnectionLabels
+                  .map(
+                    (String api) => RadioListTile<String>(
+                      value: api,
+                      groupValue: c.apiConnectionLabel,
+                      activeColor: Theme.of(context).colorScheme.primary,
+                      title: Text(api),
+                      subtitle: Text(_apiSubtitle(api)),
+                      onChanged: (String? value) {
+                        if (value == null) {
+                          return;
+                        }
+                        widget.onApiConnectionChanged(value);
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+          if (showCustomUrl) ...<Widget>[
+            const SizedBox(height: 12),
+            TextField(
+              controller: _customUrlController,
+              onChanged: widget.onCustomApiBaseUrlChanged,
+              decoration: const InputDecoration(
+                labelText: 'Custom API base URL',
+                hintText: 'https://api.example.com/v1',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              keyboardType: TextInputType.url,
+              autocorrect: false,
+            ),
+          ],
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -158,14 +213,31 @@ class _ProviderSetupScreenState extends State<ProviderSetupScreen> {
     );
   }
 
-  String _descriptionFor(String provider) {
-    switch (provider) {
-      case 'Local Runtime':
-        return 'Best for local development and low latency control.';
-      case 'OpenClaw Cloud':
-        return 'Managed runtime with remote sync and fleet visibility.';
-      case 'Custom Endpoint':
-        return 'Use your own API endpoint and runtime bridge.';
+  String _modelSubtitle(String model) {
+    switch (model) {
+      case ProviderConfigModel.modelDefault:
+        return 'Balanced default for general chat.';
+      case ProviderConfigModel.modelFast:
+        return 'Lower latency; smaller context window (mock).';
+      case ProviderConfigModel.modelCapable:
+        return 'Heavier reasoning; larger context (mock).';
+      default:
+        return '';
+    }
+  }
+
+  String _apiSubtitle(String api) {
+    switch (api) {
+      case ProviderConfigModel.apiGatewayEmbedded:
+        return 'Same routing as the gateway’s own config (typical local setup).';
+      case ProviderConfigModel.apiOpenClawCloud:
+        return 'Hosted OpenClaw inference.';
+      case ProviderConfigModel.apiOpenAiCompatible:
+        return 'OpenAI-compatible HTTP API.';
+      case ProviderConfigModel.apiAnthropic:
+        return 'Anthropic Messages API.';
+      case ProviderConfigModel.apiCustomBaseUrl:
+        return 'Point to your own base URL.';
       default:
         return '';
     }

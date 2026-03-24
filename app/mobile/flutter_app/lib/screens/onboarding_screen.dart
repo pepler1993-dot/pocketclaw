@@ -174,7 +174,7 @@ class OnboardingScreen extends StatelessWidget {
                     onPressed: onContinue,
                     icon: const Icon(Icons.arrow_forward_rounded, size: 22),
                     label: const Text(
-                      'Set up provider',
+                      'Connection setup',
                       style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.2),
                     ),
                   ),

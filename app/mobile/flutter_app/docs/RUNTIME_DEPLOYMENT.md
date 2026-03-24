@@ -9,7 +9,7 @@ This document describes the **runtime deployment** feature added to the PocketCl
 | Concern | Role |
 |--------|------|
 | **Runtime deployment** | Target for the gateway process: this device, home LAN, OpenClaw Cloud, or custom URL (see `RuntimeDeploymentModel`). |
-| **Provider** | How models/APIs are reached (`ProviderConfigModel`: Local Runtime, OpenClaw Cloud, Custom Endpoint). |
+| **Model & API** | Shell-style: **model profile** (default / fast / capable) then **API connection** (embedded gateway, OpenClaw Cloud, OpenAI-compatible, Anthropic, custom base URL). See `ProviderConfigModel`. |
 
 These are orthogonal: you can e.g. target a LAN gateway while still using a specific API provider string in the mock layer.
 

@@ -7,7 +7,7 @@ import '../models/runtime_deployment_model.dart';
 class AppPrefsSnapshot {
   const AppPrefsSnapshot({
     required this.setupComplete,
-    required this.selectedProvider,
+    required this.providerConfig,
     required this.runtimeDeploymentLabel,
     required this.autoStartRuntime,
     required this.alertLevel,
@@ -16,9 +16,10 @@ class AppPrefsSnapshot {
   });
 
   final bool setupComplete;
-  final String selectedProvider;
 
-  /// Label for [RuntimeDeploymentModel.fromSelectionLabel].
+  /// Model + API routing (replaces legacy single “provider” string).
+  final ProviderConfigModel providerConfig;
+
   final String runtimeDeploymentLabel;
 
   final bool autoStartRuntime;
@@ -30,6 +31,9 @@ class AppPrefsSnapshot {
 abstract final class AppPrefs {
   static const String _kSetupComplete = 'pc_setup_complete';
   static const String _kSelectedProvider = 'pc_selected_provider';
+  static const String _kModelProfile = 'pc_model_profile';
+  static const String _kApiConnection = 'pc_api_connection';
+  static const String _kCustomApiUrl = 'pc_custom_api_base_url';
   static const String _kRuntimeDeployment = 'pc_runtime_deployment';
   static const String _kAutoStart = 'pc_auto_start_runtime';
   static const String _kAlertLevel = 'pc_alert_level';
@@ -38,10 +42,10 @@ abstract final class AppPrefs {
 
   static Future<AppPrefsSnapshot> load() async {
     final SharedPreferences p = await SharedPreferences.getInstance();
+    final ProviderConfigModel providerConfig = _readProviderConfig(p);
     return AppPrefsSnapshot(
       setupComplete: p.getBool(_kSetupComplete) ?? false,
-      selectedProvider:
-          p.getString(_kSelectedProvider) ?? ProviderConfigModel.labelLocalRuntime,
+      providerConfig: providerConfig,
       runtimeDeploymentLabel: p.getString(_kRuntimeDeployment) ??
           RuntimeDeploymentModel.labelThisPhone,
       autoStartRuntime: p.getBool(_kAutoStart) ?? true,
@@ -51,14 +55,46 @@ abstract final class AppPrefs {
     );
   }
 
+  static ProviderConfigModel _readProviderConfig(SharedPreferences p) {
+    final String? model = p.getString(_kModelProfile);
+    final String? api = p.getString(_kApiConnection);
+    if (model != null && api != null) {
+      return ProviderConfigModel.fromSetup(
+        modelProfileLabel: model,
+        apiConnectionLabel: api,
+        customApiBaseUrl: p.getString(_kCustomApiUrl),
+      );
+    }
+    return ProviderConfigModel.fromLegacyProvider(p.getString(_kSelectedProvider));
+  }
+
   static Future<void> saveAfterSetup({
-    required String provider,
+    required ProviderConfigModel providerConfig,
     required String runtimeDeploymentLabel,
   }) async {
     final SharedPreferences p = await SharedPreferences.getInstance();
     await p.setBool(_kSetupComplete, true);
-    await p.setString(_kSelectedProvider, provider);
+    await _writeProviderConfig(p, providerConfig);
     await p.setString(_kRuntimeDeployment, runtimeDeploymentLabel);
+  }
+
+  static Future<void> saveProviderConfig(ProviderConfigModel providerConfig) async {
+    final SharedPreferences p = await SharedPreferences.getInstance();
+    await _writeProviderConfig(p, providerConfig);
+  }
+
+  static Future<void> _writeProviderConfig(
+    SharedPreferences p,
+    ProviderConfigModel c,
+  ) async {
+    await p.setString(_kModelProfile, c.modelProfileLabel);
+    await p.setString(_kApiConnection, c.apiConnectionLabel);
+    final String? url = c.customApiBaseUrl;
+    if (url != null && url.trim().isNotEmpty) {
+      await p.setString(_kCustomApiUrl, url.trim());
+    } else {
+      await p.remove(_kCustomApiUrl);
+    }
   }
 
   static Future<void> saveRuntimeDeploymentLabel(String label) async {

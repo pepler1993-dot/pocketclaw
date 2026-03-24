@@ -13,19 +13,22 @@ import '../persistence/app_prefs.dart';
 /// Drives [RuntimeScreen], [DiagnosticsScreen], and [ChatScreen] until real IPC exists.
 class MockRuntimeService extends ChangeNotifier {
   MockRuntimeService({
-    required this.providerConfig,
+    required ProviderConfigModel providerConfig,
     required RuntimeDeploymentModel deployment,
     this.autoStartRuntime = true,
     this.alertLevel = 'Moderate',
     this.syncFrequencyLabel = '30s',
     this.diagnosticsUploadEnabled = true,
-  }) : _deployment = deployment {
+  })  : _providerConfig = providerConfig,
+        _deployment = deployment {
     _tickTimer = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
     _seedDiagnostics();
     _applyLifecycle(RuntimeLifecycle.running);
   }
 
-  final ProviderConfigModel providerConfig;
+  ProviderConfigModel _providerConfig;
+
+  ProviderConfigModel get providerConfig => _providerConfig;
 
   RuntimeDeploymentModel _deployment;
 
@@ -76,11 +79,11 @@ class MockRuntimeService extends ChangeNotifier {
     final DateTime now = DateTime.now();
     _appendEvent(
       'INFO',
-      'runtime: session initialized (${providerConfig.displayLabel}, ${_deployment.displayLabel})',
+      'runtime: session initialized (${_providerConfig.displayLabel}; ${_deployment.displayLabel})',
     );
     _appendLog(now, 'INFO', 'runtime: session initialized');
-    _appendEvent('INFO', 'runtime: target ${_deployment.runtimeModeSummary}');
-    _appendLog(now, 'INFO', 'runtime: target ${_deployment.runtimeModeSummary}');
+    _appendEvent('INFO', 'runtime: ${_deployment.runtimeModeSummary}');
+    _appendLog(now, 'INFO', 'runtime: ${_deployment.runtimeModeSummary}');
     _appendEvent('INFO', 'queue: processor idle, waiting for tasks');
     _appendLog(now, 'INFO', 'queue: processor idle');
   }
@@ -317,6 +320,18 @@ class MockRuntimeService extends ChangeNotifier {
     unawaited(_persistSettings());
   }
 
+  void setProviderConfig(ProviderConfigModel value) {
+    if (_providerConfig == value) {
+      return;
+    }
+    _providerConfig = value;
+    final DateTime now = DateTime.now();
+    _appendEvent('INFO', 'runtime: model/API set to ${value.displayLabel}');
+    _appendLog(now, 'INFO', 'runtime: model/API set to ${value.displayLabel}');
+    notifyListeners();
+    unawaited(AppPrefs.saveProviderConfig(value));
+  }
+
   void setDeployment(RuntimeDeploymentModel value) {
     if (_deployment.kind == value.kind) {
       return;
@@ -352,14 +367,30 @@ class MockRuntimeService extends ChangeNotifier {
   }
 
   /// Simple assistant reply for the mock chat (no network).
-  String mockAssistantReply(String userMessage) {
+  String mockAssistantReply(String userMessage, {String? attachmentName}) {
     final String t = userMessage.toLowerCase().trim();
     final RuntimeStateModel s = _runtime;
+    if (t.isEmpty && (attachmentName == null || attachmentName.isEmpty)) {
+      return 'Say something or attach a file to get started.';
+    }
+    if (attachmentName != null && attachmentName.isNotEmpty) {
+      final String base =
+          'Received attachment “$attachmentName” (mock: not uploaded). ';
+      if (t.isEmpty) {
+        return '${base}Add a message if you want context.';
+      }
+      return base + _mockReplyForText(t, s);
+    }
     if (t.isEmpty) {
       return 'Say something to get started.';
     }
+    return _mockReplyForText(t, s);
+  }
+
+  String _mockReplyForText(String t, RuntimeStateModel s) {
     if (t.contains('health') || t.contains('status') || t.contains('runtime')) {
-      return 'Target: ${_deployment.displayLabel}. Runtime is ${_lifecycleWord(s.lifecycle)}. $heartbeatSubtitle Queue depth: ${s.queueDepth}.';
+      return 'Gateway: ${_deployment.displayLabel}. Model/API: ${_providerConfig.displayLabel}. '
+          'Runtime is ${_lifecycleWord(s.lifecycle)}. $heartbeatSubtitle Queue depth: ${s.queueDepth}.';
     }
     if (t.contains('diag') || t.contains('log') || t.contains('event')) {
       return 'Diagnostics has ${_events.length} recent events. Open the Diagnostics tab for details.';

@@ -2,6 +2,7 @@ import 'dart:async' show unawaited;
 
 import 'package:flutter/foundation.dart';
 
+import '../models/provider_config_model.dart';
 import '../models/runtime_deployment_model.dart';
 import '../persistence/app_prefs.dart';
 
@@ -13,20 +14,23 @@ enum AppFlowStep {
 
 class AppFlowController extends ChangeNotifier {
   AppFlowStep _step = AppFlowStep.onboarding;
-  String _selectedProvider = 'Local Runtime';
+  ProviderConfigModel _providerConfig = ProviderConfigModel.fromSetup(
+    modelProfileLabel: ProviderConfigModel.modelDefault,
+    apiConnectionLabel: ProviderConfigModel.apiGatewayEmbedded,
+  );
   String _selectedDeployment = RuntimeDeploymentModel.labelThisPhone;
 
   AppFlowStep get step => _step;
-  String get selectedProvider => _selectedProvider;
+  ProviderConfigModel get providerConfig => _providerConfig;
   String get selectedDeployment => _selectedDeployment;
 
   /// Restores onboarding/setup progress from local storage.
   void hydrateFromPrefs({
     required bool setupComplete,
-    required String selectedProvider,
+    required ProviderConfigModel providerConfig,
     required String runtimeDeploymentLabel,
   }) {
-    _selectedProvider = selectedProvider;
+    _providerConfig = providerConfig;
     _selectedDeployment = runtimeDeploymentLabel;
     if (setupComplete) {
       _step = AppFlowStep.mainShell;
@@ -39,8 +43,37 @@ class AppFlowController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setProvider(String value) {
-    _selectedProvider = value;
+  void setProviderConfig(ProviderConfigModel value) {
+    _providerConfig = value;
+    notifyListeners();
+  }
+
+  void setModelProfile(String value) {
+    _providerConfig = ProviderConfigModel.fromSetup(
+      modelProfileLabel: value,
+      apiConnectionLabel: _providerConfig.apiConnectionLabel,
+      customApiBaseUrl: _providerConfig.customApiBaseUrl,
+    );
+    notifyListeners();
+  }
+
+  void setApiConnection(String value) {
+    _providerConfig = ProviderConfigModel.fromSetup(
+      modelProfileLabel: _providerConfig.modelProfileLabel,
+      apiConnectionLabel: value,
+      customApiBaseUrl: value == ProviderConfigModel.apiCustomBaseUrl
+          ? _providerConfig.customApiBaseUrl
+          : null,
+    );
+    notifyListeners();
+  }
+
+  void setCustomApiBaseUrl(String value) {
+    _providerConfig = ProviderConfigModel.fromSetup(
+      modelProfileLabel: _providerConfig.modelProfileLabel,
+      apiConnectionLabel: _providerConfig.apiConnectionLabel,
+      customApiBaseUrl: value.trim().isEmpty ? null : value.trim(),
+    );
     notifyListeners();
   }
 
@@ -54,7 +87,7 @@ class AppFlowController extends ChangeNotifier {
     notifyListeners();
     unawaited(
       AppPrefs.saveAfterSetup(
-        provider: _selectedProvider,
+        providerConfig: _providerConfig,
         runtimeDeploymentLabel: _selectedDeployment,
       ),
     );

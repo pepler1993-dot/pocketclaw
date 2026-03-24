@@ -1,5 +1,6 @@
 import 'dart:async' show unawaited;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -12,12 +13,14 @@ class _ChatBubble {
     required this.text,
     required this.isAssistant,
     required this.timestamp,
+    this.attachmentName,
   });
 
   final String author;
   final String text;
   final bool isAssistant;
   final String timestamp;
+  final String? attachmentName;
 }
 
 class ChatScreen extends StatefulWidget {
@@ -36,16 +39,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
   late List<_ChatBubble> _messages;
   bool _speechReady = false;
+  String? _pendingAttachmentName;
 
   @override
   void initState() {
     super.initState();
+    final String pc = widget.session.providerConfig.displayLabel;
     _messages = <_ChatBubble>[
       _ChatBubble(
         author: 'PocketClaw',
         text:
-            'You are connected to ${widget.session.providerConfig.displayLabel}. '
-            'Ask for runtime status or diagnostics — or tap the microphone to speak.',
+            'Model/API: $pc. Gateway: ${widget.session.deployment.displayLabel}. '
+            'Ask for runtime status, attach a file for a mock hand-off, or use the mic.',
         isAssistant: true,
         timestamp: _timeLabel(DateTime.now()),
       ),
@@ -88,6 +93,22 @@ class _ChatScreenState extends State<ChatScreen> {
     final String h = t.hour.toString().padLeft(2, '0');
     final String m = t.minute.toString().padLeft(2, '0');
     return '$h:$m';
+  }
+
+  Future<void> _pickAttachment() async {
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      allowMultiple: false,
+      withData: false,
+    );
+    if (result == null || result.files.isEmpty) {
+      return;
+    }
+    final PlatformFile f = result.files.single;
+    if (!mounted) {
+      return;
+    }
+    setState(() => _pendingAttachmentName = f.name);
   }
 
   Future<void> _toggleSpeechInput() async {
@@ -134,22 +155,25 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _send() async {
     final String text = _controller.text.trim();
-    if (text.isEmpty) {
+    final String? attachment = _pendingAttachmentName;
+    if (text.isEmpty && attachment == null) {
       return;
     }
     if (_speech.isListening) {
       await _speech.stop();
     }
     _controller.clear();
+    setState(() => _pendingAttachmentName = null);
     final DateTime now = DateTime.now();
     setState(() {
       _messages = <_ChatBubble>[
         ..._messages,
         _ChatBubble(
           author: 'You',
-          text: text,
+          text: text.isEmpty ? '(no message)' : text,
           isAssistant: false,
           timestamp: _timeLabel(now),
+          attachmentName: attachment,
         ),
       ];
     });
@@ -159,7 +183,10 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!mounted) {
       return;
     }
-    final String reply = widget.session.mockAssistantReply(text);
+    final String reply = widget.session.mockAssistantReply(
+      text,
+      attachmentName: attachment,
+    );
     final DateTime replyAt = DateTime.now();
     setState(() {
       _messages = <_ChatBubble>[
@@ -223,7 +250,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Text(
-                        'Try: “runtime status”, “diagnostics”, or use the mic for speech-to-text.',
+                        'Try: “runtime status”, attach a file, or use the mic for speech-to-text.',
                       ),
                     ),
                   ],
@@ -238,52 +265,73 @@ class _ChatScreenState extends State<ChatScreen> {
           top: false,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.add_circle_outline),
-                  tooltip: 'Attach context',
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    onSubmitted: (_) => _send(),
-                    decoration: const InputDecoration(
-                      hintText: 'Message PocketClaw',
-                      border: OutlineInputBorder(),
-                      isDense: true,
+                if (_pendingAttachmentName != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: InputChip(
+                        avatar: const Icon(Icons.attach_file, size: 18),
+                        label: Text(
+                          _pendingAttachmentName!,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onDeleted: () => setState(() => _pendingAttachmentName = null),
+                      ),
                     ),
-                    minLines: 1,
-                    maxLines: 4,
                   ),
-                ),
-                const SizedBox(width: 4),
-                IconButton.filledTonal(
-                  onPressed: _speechReady ? _toggleSpeechInput : null,
-                  style: IconButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    minimumSize: const Size(40, 40),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    backgroundColor: listening ? colors.primaryContainer : null,
-                    foregroundColor: listening ? colors.onPrimaryContainer : null,
-                  ),
-                  tooltip: listening ? 'Stop dictation' : 'Speech to text',
-                  icon: Icon(
-                    listening ? Icons.stop_circle_outlined : Icons.mic_none_outlined,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                IconButton.filled(
-                  onPressed: _send,
-                  tooltip: 'Send',
-                  style: IconButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    minimumSize: const Size(40, 40),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  icon: const Icon(Icons.send_rounded, size: 22),
+                Row(
+                  children: <Widget>[
+                    IconButton(
+                      onPressed: _pickAttachment,
+                      icon: const Icon(Icons.add_circle_outline),
+                      tooltip: 'Attach file',
+                    ),
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        onSubmitted: (_) => _send(),
+                        decoration: const InputDecoration(
+                          hintText: 'Message PocketClaw',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        minLines: 1,
+                        maxLines: 4,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    IconButton.filledTonal(
+                      onPressed: _speechReady ? _toggleSpeechInput : null,
+                      style: IconButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        minimumSize: const Size(40, 40),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        backgroundColor: listening ? colors.primaryContainer : null,
+                        foregroundColor: listening ? colors.onPrimaryContainer : null,
+                      ),
+                      tooltip: listening ? 'Stop dictation' : 'Speech to text',
+                      icon: Icon(
+                        listening ? Icons.stop_circle_outlined : Icons.mic_none_outlined,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    IconButton.filled(
+                      onPressed: _send,
+                      tooltip: 'Send',
+                      style: IconButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        minimumSize: const Size(40, 40),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      icon: const Icon(Icons.send_rounded, size: 22),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -313,6 +361,26 @@ class _ChatScreenState extends State<ChatScreen> {
                   style: Theme.of(context).textTheme.labelMedium,
                 ),
                 const SizedBox(height: 4),
+                if (message.attachmentName != null) ...<Widget>[
+                  Row(
+                    children: <Widget>[
+                      Icon(
+                        Icons.attach_file,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          message.attachmentName!,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                ],
                 Text(message.text),
                 const SizedBox(height: 8),
                 Text(

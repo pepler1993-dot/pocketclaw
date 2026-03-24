@@ -13,6 +13,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('OpenClaw'), findsOneWidget);
-    expect(find.text('Set up provider'), findsOneWidget);
+    expect(find.text('Connection setup'), findsOneWidget);
   });
 }
