@@ -11,6 +11,9 @@ abstract final class OpenAiTokenStore {
   static const String _kExpiresAt = 'pc_openai_oauth_expires_at';
   static const String _kMock = 'pc_openai_oauth_mock';
 
+  /// Optional `sk-…` key for `api.openai.com` (development / when OAuth token is not accepted).
+  static const String _kApiKey = 'pc_openai_api_key';
+
   static Future<bool> hasAccessToken() async {
     final String? t = await _storage.read(key: _kAccess);
     return t != null && t.isNotEmpty;
@@ -48,10 +51,29 @@ abstract final class OpenAiTokenStore {
 
   static Future<String?> readRefreshToken() => _storage.read(key: _kRefresh);
 
+  static Future<String?> readApiKey() => _storage.read(key: _kApiKey);
+
+  static Future<bool> hasApiKey() async {
+    final String? k = await readApiKey();
+    return k != null && k.isNotEmpty;
+  }
+
+  static Future<void> writeApiKey(String apiKey) async {
+    final String t = apiKey.trim();
+    if (t.isEmpty) {
+      await _storage.delete(key: _kApiKey);
+    } else {
+      await _storage.write(key: _kApiKey, value: t);
+    }
+  }
+
+  static Future<void> deleteApiKey() => _storage.delete(key: _kApiKey);
+
   static Future<void> clearAll() async {
     await _storage.delete(key: _kAccess);
     await _storage.delete(key: _kRefresh);
     await _storage.delete(key: _kExpiresAt);
     await _storage.delete(key: _kMock);
+    await _storage.delete(key: _kApiKey);
   }
 }

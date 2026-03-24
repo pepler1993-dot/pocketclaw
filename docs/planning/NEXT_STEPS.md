@@ -4,13 +4,13 @@ Single place for **what to do next**. Older split docs (`NEXT_STEPS_PRIORITY`, `
 
 ## Now (validation)
 
-1. On a machine with Flutter on `PATH`: `cd app/mobile/flutter_app` → `flutter analyze` → `flutter test` → optional `flutter run` / `flutter build apk`.
-2. Note blockers (device, emulator, Gradle) in an issue or in `docs/development/PROJECT_STATUS.md`.
+1. On a machine with Flutter on `PATH`: `cd app/mobile/flutter_app` → `flutter pub get` → `flutter analyze` → `flutter test` → `flutter run` / `flutter build apk` on a **real device or emulator**.
+2. For **real Chat Completions**: add an OpenAI **API key** under **Settings → OpenAI** (secure storage), or supply OAuth tokens that `api.openai.com` actually accepts (rare without a backend).
 
 ## Then (product + mock depth)
 
-1. Improve provider/runtime UX where gaps show up in real use.
-2. Extend mock or introduce a **narrow runtime client interface** before wiring a real gateway.
+1. **Runtime abstraction:** introduce a small `RuntimeClient` interface (connect, status stream, lifecycle) with the current mock as one implementation; second implementation can wrap Android service / gateway later.
+2. **Chat:** streaming (SSE) responses, token refresh for OAuth if you keep it, and **no secrets in logs**.
 
 ## Parallel (Android / OpenClaw)
 

@@ -17,7 +17,9 @@ Redirect URI defaults to **`pocketclaw://oauth-callback`** (registered in Androi
 
 **Debug:** “Simulate OAuth” on the sign-in screen skips the browser (mock token; chat uses mock replies unless a real API token works).
 
-**Note:** Many OAuth tokens are **not** accepted by `https://api.openai.com` (which expects **API keys**). Real end-to-end chat often needs a **backend** or an IdP/token exchange your OpenAI project accepts. The app still performs the OAuth UI flow and calls the Chat Completions API when the stored token works.
+**API key (Settings → OpenAI):** optional `sk-…` stored in **secure storage**; Chat Completions **prefer this** over the OAuth access token so local dev can get real replies without a proxy.
+
+**Note:** OAuth-only tokens are often **not** accepted by `api.openai.com`. Production should prefer a **backend**; the in-app key path is for dev/personal use.
 
 ## Documentation
 

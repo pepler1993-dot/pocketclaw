@@ -4,10 +4,11 @@ import 'package:http/http.dart' as http;
 
 import '../persistence/openai_token_store.dart';
 
-/// Calls OpenAI Chat Completions when a non-mock OAuth access token is present.
+/// Calls OpenAI Chat Completions using an optional **API key** (preferred for `api.openai.com`)
+/// or an **OAuth access token** if no key is stored (and session is not mock-only).
 ///
-/// Many OAuth tokens are **not** accepted by `api.openai.com` (which expects API keys).
-/// This is wired for when your token is valid for the OpenAI API or a compatible proxy.
+/// OpenAI’s public API expects `Authorization: Bearer` with an **API key** for most accounts.
+/// OAuth tokens from external IdPs often return 401 here — use [OpenAiTokenStore.writeApiKey] for dev.
 class OpenAiChatService {
   static const String _completionsUrl = 'https://api.openai.com/v1/chat/completions';
 
@@ -15,11 +16,9 @@ class OpenAiChatService {
     required String model,
     required String userText,
   }) async {
-    if (await OpenAiTokenStore.isMockSession()) {
-      return null;
-    }
-    final String? token = await OpenAiTokenStore.readAccessToken();
-    if (token == null || token.isEmpty) {
+    final String? apiKey = await OpenAiTokenStore.readApiKey();
+    final String? keyOrToken = await _resolveBearer(apiKey);
+    if (keyOrToken == null || keyOrToken.isEmpty) {
       return null;
     }
 
@@ -27,7 +26,7 @@ class OpenAiChatService {
       Uri.parse(_completionsUrl),
       headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $keyOrToken',
       },
       body: jsonEncode(<String, Object?>{
         'model': model,
@@ -49,6 +48,21 @@ class OpenAiChatService {
     final Map<String, dynamic> first = choices.first as Map<String, dynamic>;
     final Map<String, dynamic>? message = first['message'] as Map<String, dynamic>?;
     return message?['content'] as String?;
+  }
+
+  /// API key wins; otherwise OAuth token unless mock OAuth session with no key.
+  static Future<String?> _resolveBearer(String? apiKey) async {
+    if (apiKey != null && apiKey.trim().isNotEmpty) {
+      return apiKey.trim();
+    }
+    if (await OpenAiTokenStore.isMockSession()) {
+      return null;
+    }
+    final String? token = await OpenAiTokenStore.readAccessToken();
+    if (token == null || token.isEmpty) {
+      return null;
+    }
+    return token;
   }
 }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/openai_chat_model_option.dart';
 import '../models/runtime_deployment_model.dart';
 import '../services/mock_runtime_service.dart';
+import '../widgets/openai_api_key_section.dart';
 import '../widgets/product_widgets.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -42,7 +43,7 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 16),
             SectionCard(
               title: 'OpenAI',
-              subtitle: 'Signed in via OAuth (PKCE). Chat uses your selected model.',
+              subtitle: 'OAuth (PKCE) plus optional API key for chat. Key takes precedence for api.openai.com.',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -74,6 +75,8 @@ class SettingsScreen extends StatelessWidget {
                       session.setOpenAiChatModel(value);
                     },
                   ),
+                  const SizedBox(height: 16),
+                  const OpenAiApiKeySection(),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
