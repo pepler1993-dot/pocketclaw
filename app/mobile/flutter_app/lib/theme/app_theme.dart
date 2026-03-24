@@ -25,7 +25,7 @@ class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: colorScheme.surface,
       brightness: Brightness.dark,
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: const Color(0xFF121212),
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
@@ -39,10 +39,10 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: const Color(0xFF111111),
-        indicatorColor: colorScheme.primary.withOpacity(0.2),
-        labelTextStyle: MaterialStateProperty.resolveWith<TextStyle?>(
-          (Set<MaterialState> states) {
-            final bool selected = states.contains(MaterialState.selected);
+        indicatorColor: colorScheme.primary.withValues(alpha: 0.2),
+        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
+          (Set<WidgetState> states) {
+            final bool selected = states.contains(WidgetState.selected);
             return TextStyle(
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant,

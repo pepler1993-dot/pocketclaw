@@ -13,14 +13,11 @@ import '../persistence/app_prefs.dart';
 class MockRuntimeService extends ChangeNotifier {
   MockRuntimeService({
     required this.providerConfig,
-    bool autoStartRuntime = true,
-    String alertLevel = 'Moderate',
-    String syncFrequencyLabel = '30s',
-    bool diagnosticsUploadEnabled = true,
-  })  : autoStartRuntime = autoStartRuntime,
-        alertLevel = alertLevel,
-        syncFrequencyLabel = syncFrequencyLabel,
-        diagnosticsUploadEnabled = diagnosticsUploadEnabled {
+    this.autoStartRuntime = true,
+    this.alertLevel = 'Moderate',
+    this.syncFrequencyLabel = '30s',
+    this.diagnosticsUploadEnabled = true,
+  }) {
     _tickTimer = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
     _seedDiagnostics();
     _applyLifecycle(RuntimeLifecycle.running);
@@ -335,7 +332,7 @@ class MockRuntimeService extends ChangeNotifier {
       return 'Say something to get started.';
     }
     if (t.contains('health') || t.contains('status') || t.contains('runtime')) {
-      return 'Runtime is ${_lifecycleWord(s.lifecycle)}. ${heartbeatSubtitle} Queue depth: ${s.queueDepth}.';
+      return 'Runtime is ${_lifecycleWord(s.lifecycle)}. $heartbeatSubtitle Queue depth: ${s.queueDepth}.';
     }
     if (t.contains('diag') || t.contains('log') || t.contains('event')) {
       return 'Diagnostics has ${_events.length} recent events. Open the Diagnostics tab for details.';
