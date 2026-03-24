@@ -300,7 +300,7 @@ That is how you get a confusing and fragile MVP.
 ## Recommended next technical artifact
 After this draft, the next useful document is:
 
-**`ANDROID_SERVICE_MODEL.md`**
+**[`ANDROID_SERVICE_MODEL.md`](ANDROID_SERVICE_MODEL.md)** (same folder)
 
 That should answer:
 - what exact Android service/process model PocketClaw should use

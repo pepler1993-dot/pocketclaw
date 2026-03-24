@@ -33,3 +33,7 @@ Use GitHub Issues to report:
 - Bugs
 - Feature requests
 - Performance problems
+
+## Documentation
+
+Product and technical planning docs live under **`docs/`**. See **`docs/README.md`** for the index.

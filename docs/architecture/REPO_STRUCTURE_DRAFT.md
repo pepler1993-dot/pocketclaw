@@ -5,20 +5,16 @@
 ```text
 pocketclaw/
   README.md
-  VISION.md
-  PRODUCT_PRINCIPLES.md
-  TECH_FEASIBILITY.md
-  MVP.md
-  ARCHITECTURE.md
-  POC_PLAN.md
-  ANDROID_POC_SPEC.md
-  STACK_DECISION.md
-  REPO_STRUCTURE_DRAFT.md
-  GITHUB_ISSUES_DRAFT.md
+  CONTRIBUTING.md
   docs/
-    research/
-    ux/
-    decisions/
+    README.md
+    product/
+    architecture/
+    android/
+    planning/
+    dependencies/
+    meta/
+    development/
   app/
     mobile/
       flutter_app/
@@ -33,14 +29,8 @@ pocketclaw/
 
 ## Purpose of folders
 
-### docs/research
-Feasibility notes, experiments, platform findings.
-
-### docs/ux
-Onboarding drafts, screen flows, copy notes, UI sketches.
-
-### docs/decisions
-Small ADR-style documents for important decisions.
+### docs/product / docs/architecture / docs/android / …
+See [`docs/README.md`](../README.md). Topic folders replace an older idea of `docs/research`, `docs/ux`, etc.
 
 ### app/mobile/flutter_app
 Main Flutter application.
@@ -58,4 +48,4 @@ Architecture diagrams, flowcharts, state diagrams.
 Keep product docs and implementation close, but not mixed into chaos.
 
 ## Next practical step
-Create the `docs/`, `app/`, `runtime/`, and `assets/` folder skeleton once the first Android PoC task starts.
+`docs/` and `app/` exist; add `runtime/` and `assets/` when native/runtime and design assets land.

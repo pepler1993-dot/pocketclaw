@@ -40,29 +40,29 @@ PocketClaw exists to close that gap.
 The real challenge is not just getting OpenClaw to run on a phone.
 The real challenge is making it feel easy, safe, and pleasant to use.
 
-## Current project docs
+## Documentation
 
-- `VISION.md` — overall product vision
-- `PRODUCT_PRINCIPLES.md` — guiding product rules
-- `TECH_FEASIBILITY.md` — feasibility and platform reality check
-- `MVP.md` — smallest useful version
-- `ARCHITECTURE.md` — first architecture draft
-- `ROADMAP.md` — high-level roadmap
-- `IDEAS.md` — idea collection
-- `IDEA_TEMPLATE.md` — template for new concepts
+All planning and engineering docs are under **`docs/`**. Start here:
 
-## Near-term plan
+- **[docs/README.md](docs/README.md)** — full index (product, architecture, Android, planning, dependencies, status)
 
-1. Validate technical feasibility on Android
-2. Define the smallest runtime architecture that can work on-device
-3. Build a minimal Android-first prototype
-4. Add a clean onboarding and settings experience
-5. Expand into voice and deeper integrations later
+Highlights:
+
+- **Product:** [docs/product/](docs/product/) — vision, principles, MVP, feasibility
+- **Next steps:** [docs/planning/NEXT_STEPS.md](docs/planning/NEXT_STEPS.md)
+- **Agent / status:** [docs/development/AGENT_HANDOFF.md](docs/development/AGENT_HANDOFF.md), [docs/development/PROJECT_STATUS.md](docs/development/PROJECT_STATUS.md)
+
+## Flutter app
+
+Code: **`app/mobile/flutter_app`**
+
+- [app/mobile/flutter_app/README.md](app/mobile/flutter_app/README.md)
+- Runtime deployment (feature doc): [app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md](app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md)
 
 ## Status
 
-Early planning and product-definition phase.
+Early implementation: Flutter shell with onboarding, chat, runtime/diagnostics (mock), settings, and persisted **runtime deployment** (phone-first default). Re-run `flutter analyze` / `flutter test` locally to validate.
 
 ## Contributing
 
-See `CONTRIBUTING.md`.
+See [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -1,4 +1,6 @@
-# PocketClaw Agent Handoff — 2026-03-24
+# PocketClaw Agent Handoff
+
+**Location:** `docs/development/AGENT_HANDOFF.md` (snapshot started 2026-03-24; update in place when context changes.)
 
 ## Purpose
 This document is meant to let another agent take over the PocketClaw task quickly without losing context.
@@ -34,30 +36,10 @@ Push access is already working via stored GitHub token.
 
 ## Major work completed so far
 
-### Product / strategy docs created
-- `VISION.md`
-- `PRODUCT_PRINCIPLES.md`
-- `TECH_FEASIBILITY.md`
-- `MVP.md`
-- `ARCHITECTURE.md`
-- `POC_PLAN.md`
-- `ANDROID_POC_SPEC.md`
-- `STACK_DECISION.md`
-- `REPO_STRUCTURE_DRAFT.md`
-- `ANDROID_RUNTIME_RESEARCH.md`
-- `ANDROID_RUNTIME_EXPERIMENTS.md`
-- `NEXT_IMPLEMENTATION_STEP.md`
-- `DEPENDENCY_AUDIT.md`
-- `DEPENDENCY_MATRIX.md`
-- `ANDROID_RUNTIME_RECOMMENDATION.md`
-- `RUNTIME_SPIKE_PLAN.md`
-- `SCREEN_FLOW.md`
-- `ANDROID_RUNTIME_ARCHITECTURE_DRAFT.md`
-- `ANDROID_SERVICE_MODEL.md`
-- `ANDROID_IMPLEMENTATION_SEQUENCE.md`
-- `UI_PREVIEW.md`
-- `PROJECT_STATUS_2026-03-24.md`
-- `NEXT_STEPS_PRIORITY.md`
+### Product / strategy documentation
+- **[`docs/README.md`](../README.md)** — index of all docs (product, architecture, Android, planning, dependencies, meta, development)
+- **Next steps:** [`docs/planning/NEXT_STEPS.md`](../planning/NEXT_STEPS.md)
+- **This handoff / status:** [`AGENT_HANDOFF.md`](AGENT_HANDOFF.md), [`PROJECT_STATUS.md`](PROJECT_STATUS.md)
 
 ### GitHub issues created
 Issues were created progressively and should already exist in the repo, including Android feasibility, stack decision, runtime architecture, service model, spike planning, and UI/screen-flow related items.
@@ -87,7 +69,7 @@ Important files:
 - `lib/models/runtime_deployment_model.dart` — where the gateway runs (phone / LAN / cloud / custom)
 - `lib/persistence/app_prefs.dart` — `runtimeDeploymentLabel`, `saveRuntimeDeploymentLabel`
 - `lib/services/mock_runtime_service.dart` — takes `deployment`, drives mock logs/mode/chat; `setDeployment` persists label
-- `docs/RUNTIME_DEPLOYMENT.md` — feature documentation for agents
+- `app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md` — runtime deployment feature (repo root–relative path)
 - `lib/widgets/product_widgets.dart`
 - `lib/screens/onboarding_screen.dart`
 - `lib/screens/provider_setup_screen.dart`
@@ -213,7 +195,7 @@ Meaning:
 - Settings: dropdown changes deployment via `MockRuntimeService.setDeployment` (persists + diagnostics events).
 - `app.dart` hydrates `runtimeDeploymentLabel` and passes `deployment` into `MockRuntimeService` on first main-shell build.
 
-**Pushed to `origin/main`** (includes commit adding this wiring and `docs/RUNTIME_DEPLOYMENT.md`).
+**Pushed to `origin/main`** (includes commit adding this wiring and `app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md`).
 
 ---
 
@@ -236,7 +218,7 @@ Suggested directions:
 - Align with upstream OpenClaw gateway protocols when available.
 
 ### Third priority
-Android background execution and real service wiring (per existing repo docs: `ANDROID_SERVICE_MODEL.md`, `ANDROID_IMPLEMENTATION_SEQUENCE.md`, etc.).
+Android background execution and real service wiring (per [`docs/android/`](../android/): `ANDROID_SERVICE_MODEL.md`, `ANDROID_IMPLEMENTATION_SEQUENCE.md`, etc.).
 
 ---
 

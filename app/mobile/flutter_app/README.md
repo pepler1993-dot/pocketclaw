@@ -1,23 +1,24 @@
-# PocketClaw Flutter App
+# PocketClaw Flutter app
 
-Initial Flutter-first scaffold for the Android-first PocketClaw mobile app.
+Flutter UI shell for the Android-first PocketClaw mobile app (`app/mobile/flutter_app`).
 
-## Current Scope
+## What’s in the tree
 
-- Minimal project structure (without using `flutter create`)
-- Simple app shell with four placeholder screens
-- Shared theme setup for consistent visual defaults
+- **`lib/`** — onboarding, provider + runtime deployment setup, main shell (chat, runtime, diagnostics, settings)
+- **Platform hosts** — `android/`, `ios/`, etc. (from `flutter create`)
 
-## Structure
+## Documentation
 
-- `lib/main.dart` - app entrypoint
-- `lib/app.dart` - root app widget and navigation shell
-- `lib/screens/` - placeholder screens for core surfaces
-- `lib/theme/app_theme.dart` - centralized theme setup
-- `docs/IMPLEMENTATION_NOTES.md` - implementation notes
+- **[docs/RUNTIME_DEPLOYMENT.md](docs/RUNTIME_DEPLOYMENT.md)** — where the gateway is expected to run (mock-backed; persisted)
+- **[docs/IMPLEMENTATION_NOTES.md](docs/IMPLEMENTATION_NOTES.md)** — scaffold / implementation notes
 
-## Next Steps
+Repo-wide product and planning docs: **[`../../../docs/README.md`](../../../docs/README.md)** (from this folder: `docs/README.md` at repository root).
 
-1. Add Android host project files (`android/`) if not present.
-2. Wire runtime state and backend communication.
-3. Replace placeholders with production UI and feature flows.
+## Local dev
+
+```bash
+cd app/mobile/flutter_app
+flutter analyze
+flutter test
+flutter run
+```

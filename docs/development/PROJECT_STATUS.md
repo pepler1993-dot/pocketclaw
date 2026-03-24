@@ -1,5 +1,7 @@
 # PocketClaw Project Status — 2026-03-24
 
+> **Note:** Repository documentation was reorganized into `docs/` (by topic). This file is a historical snapshot; the canonical doc index is [`docs/README.md`](../README.md).
+
 ## Summary
 PocketClaw has moved from a rough product idea into a structured early-stage product and engineering repository.
 
@@ -24,13 +26,10 @@ The PocketClaw concept has been sharpened into:
 - Android-first for realistic MVP execution
 - iPhone treated honestly as a harder later-stage target
 
-### Key product docs added
-- `VISION.md`
-- `PRODUCT_PRINCIPLES.md`
-- `TECH_FEASIBILITY.md`
-- `MVP.md`
-- `ARCHITECTURE.md`
-- `POC_PLAN.md`
+### Key product docs (now under `docs/`)
+- [`docs/product/`](../product/) — vision, principles, MVP, feasibility
+- [`docs/architecture/`](../architecture/) — architecture, stack decision, repo structure draft
+- [`docs/planning/`](../planning/) — POC plan, roadmap, screen flow, UI preview, [`NEXT_STEPS.md`](../planning/NEXT_STEPS.md)
 
 ---
 
@@ -43,20 +42,9 @@ The project now contains a clearer technical path for Android:
 - realistic foreground-service thinking
 - runtime feasibility and dependency-risk analysis
 
-### Key technical docs added
-- `ANDROID_POC_SPEC.md`
-- `STACK_DECISION.md`
-- `REPO_STRUCTURE_DRAFT.md`
-- `ANDROID_RUNTIME_RESEARCH.md`
-- `ANDROID_RUNTIME_EXPERIMENTS.md`
-- `NEXT_IMPLEMENTATION_STEP.md`
-- `DEPENDENCY_AUDIT.md`
-- `DEPENDENCY_MATRIX.md`
-- `ANDROID_RUNTIME_RECOMMENDATION.md`
-- `RUNTIME_SPIKE_PLAN.md`
-- `SCREEN_FLOW.md`
-- `ANDROID_RUNTIME_ARCHITECTURE_DRAFT.md`
-- `ANDROID_SERVICE_MODEL.md`
+### Key technical docs (now under `docs/`)
+- [`docs/android/`](../android/) — PoC spec, runtime research/experiments/recommendations, architecture draft, service model, implementation sequence, runtime spike plan
+- [`docs/dependencies/`](../dependencies/) — audit and matrix
 
 ---
 
@@ -71,11 +59,9 @@ Current visual/product direction:
 - OpenClaw-inspired identity
 - clean, sharp, operational tool feel
 
-### UX/preview docs added
-- `UI_PREVIEW.md`
-- `IDEAS.md`
-- `IDEA_TEMPLATE.md`
-- `GITHUB_ISSUES_DRAFT.md`
+### UX / meta docs (now under `docs/`)
+- [`docs/planning/UI_PREVIEW.md`](../planning/UI_PREVIEW.md)
+- [`docs/meta/`](../meta/) — ideas, idea template, GitHub issue drafts
 
 ---
 
@@ -103,7 +89,7 @@ An initial Flutter-first product shell has been created under:
 - `lib/main.dart`
 - `lib/app.dart`
 - onboarding flow
-- provider setup screen
+- provider setup screen (runtime **deployment** target + model/API provider)
 - main shell navigation
 - chat screen
 - runtime screen
@@ -192,21 +178,7 @@ For PocketClaw, the most relevant immediate result is:
 
 ## 9. Recommended next order
 
-### Step 2 first — make it runnable
-The immediate next move should be:
-- check for connected Android devices or set up emulator path
-- run `flutter devices`
-- attempt first `flutter run`
-- identify runtime/build blockers early
-
-### Step 1 second — continue productization
-After first runtime/build validation:
-- improve provider setup UX
-- add runtime state models
-- make settings/diagnostics structurally smarter
-- continue polishing the app shell
-
-This order makes sense because a running build gives much better feedback than further blind UI work.
+See the living document **[`docs/planning/NEXT_STEPS.md`](../planning/NEXT_STEPS.md)** (replaces older `NEXT_STEPS_PRIORITY` / `NEXT_IMPLEMENTATION_STEP` files).
 
 ---
 
