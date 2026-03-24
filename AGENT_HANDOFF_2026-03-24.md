@@ -21,8 +21,9 @@ Current strategic direction:
 GitHub repo:
 - `https://github.com/pepler1993-dot/pocketclaw.git`
 
-Local path:
-- `/root/.openclaw/workspace/pocketclaw`
+Local path (examples):
+- Linux/agent environment: `/root/.openclaw/workspace/pocketclaw`
+- Windows (typical): `C:\Users\<user>\Nextcloud\pocketclaw\pocketclaw`
 
 Branch currently used:
 - `main`
@@ -67,21 +68,26 @@ Path:
 
 App shell includes:
 - onboarding flow
-- provider setup screen
+- provider setup screen (two sections: **where OpenClaw runs** vs **model/API provider**)
 - main shell
 - chat screen
 - runtime screen
 - diagnostics screen
-- settings screen
+- settings screen (including **runtime location** / deployment)
 - theme
 - product widgets
 - simple app flow controller
+- **Runtime deployment** persisted separately from provider (`SharedPreferences` key `pc_runtime_deployment`; default *This phone*)
 
 Important files:
 - `lib/main.dart`
 - `lib/app.dart`
 - `lib/theme/app_theme.dart`
-- `lib/flow/app_flow_controller.dart`
+- `lib/flow/app_flow_controller.dart` (incl. `selectedDeployment`, `setDeployment`, `hydrateFromPrefs` with `runtimeDeploymentLabel`)
+- `lib/models/runtime_deployment_model.dart` — where the gateway runs (phone / LAN / cloud / custom)
+- `lib/persistence/app_prefs.dart` — `runtimeDeploymentLabel`, `saveRuntimeDeploymentLabel`
+- `lib/services/mock_runtime_service.dart` — takes `deployment`, drives mock logs/mode/chat; `setDeployment` persists label
+- `docs/RUNTIME_DEPLOYMENT.md` — feature documentation for agents
 - `lib/widgets/product_widgets.dart`
 - `lib/screens/onboarding_screen.dart`
 - `lib/screens/provider_setup_screen.dart`
@@ -198,33 +204,39 @@ Meaning:
 
 ---
 
+## Recent implementation (since original handoff draft)
+
+**Runtime deployment** is implemented end-to-end in the Flutter shell (still mock-backed):
+
+- Model: `RuntimeDeploymentKind` + `RuntimeDeploymentModel` with stable persisted labels.
+- Setup: user picks deployment first, then provider; `completeSetup` saves both.
+- Settings: dropdown changes deployment via `MockRuntimeService.setDeployment` (persists + diagnostics events).
+- `app.dart` hydrates `runtimeDeploymentLabel` and passes `deployment` into `MockRuntimeService` on first main-shell build.
+
+**Pushed to `origin/main`** (includes commit adding this wiring and `docs/RUNTIME_DEPLOYMENT.md`).
+
+---
+
 ## Recommended next steps for the next agent
 
 ### First priority
-Finish clean build validation.
+Validate the Flutter project on a machine with Flutter in `PATH`.
 
-1. rerun `flutter analyze`
-2. if desired, optionally clean remaining lint warnings
-3. rerun `flutter build apk --debug`
-4. verify APK output path
+1. `cd app/mobile/flutter_app`
+2. `flutter analyze`
+3. `flutter test`
+4. Optional: `flutter build apk` (or platform of choice)
 
 ### Second priority
-Prepare app for real runtime-backed product logic.
+Move from mock toward real OpenClaw/gateway integration.
 
-Recommended next code steps:
-- add `runtime_state_model.dart`
-- add `provider_config_model.dart`
-- add mock runtime service layer
-- connect runtime screen to mock state model
-- improve settings screen structure to reflect real product data
+Suggested directions:
+- Define a narrow **runtime client interface** (connect, stream, control) and one implementation that still mocks.
+- LAN / custom gateway: URL fields and validation (UI + prefs) when product is ready.
+- Align with upstream OpenClaw gateway protocols when available.
 
 ### Third priority
-Prepare real runtime communication planning/coding.
-
-Potential next docs/code:
-- `RUNTIME_COMMUNICATION_OPTIONS.md`
-- initial runtime service interface in Flutter
-- app-side runtime control abstraction
+Android background execution and real service wiring (per existing repo docs: `ANDROID_SERVICE_MODEL.md`, `ANDROID_IMPLEMENTATION_SEQUENCE.md`, etc.).
 
 ---
 
@@ -242,9 +254,10 @@ PocketClaw is no longer just planning.
 It now has:
 - substantial product/architecture documentation
 - an initialized Flutter project
-- a first branded UI shell
-- a partially cleaned analysis/build path
-- installed Flutter/Android tooling on host
+- a first branded UI shell with **runtime deployment** (phone-first default) and **provider** choices wired through prefs and the mock runtime
+- docs: `app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md`
+- a partially cleaned analysis/build path (re-verify with local Flutter)
+- installed Flutter/Android tooling on some hosts; **Windows dev environments may need Flutter on PATH** for CLI runs
 
 Immediate task for next agent:
-**finish build validation and move the app from shell-only to model-backed UI.**
+**run `flutter analyze` / `flutter test` (and optional APK build), then advance real gateway/runtime integration behind the existing abstractions.**
