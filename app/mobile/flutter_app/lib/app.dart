@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'flow/app_flow_controller.dart';
+import 'models/provider_config_model.dart';
 import 'screens/chat_screen.dart';
 import 'screens/diagnostics_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/provider_setup_screen.dart';
 import 'screens/runtime_screen.dart';
 import 'screens/settings_screen.dart';
+import 'services/mock_runtime_service.dart';
 import 'theme/app_theme.dart';
 
 class PocketClawApp extends StatelessWidget {
@@ -32,6 +34,7 @@ class _AppEntryPoint extends StatefulWidget {
 
 class _AppEntryPointState extends State<_AppEntryPoint> {
   late final AppFlowController _flowController;
+  MockRuntimeService? _session;
 
   @override
   void initState() {
@@ -41,6 +44,7 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
 
   @override
   void dispose() {
+    _session?.dispose();
     _flowController.dispose();
     super.dispose();
   }
@@ -62,7 +66,12 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
               onFinish: _flowController.completeSetup,
             );
           case AppFlowStep.mainShell:
-            return const _RootShell();
+            _session ??= MockRuntimeService(
+              providerConfig: ProviderConfigModel.fromSelectionLabel(
+                _flowController.selectedProvider,
+              ),
+            );
+            return _RootShell(session: _session!);
         }
       },
     );
@@ -70,7 +79,9 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
 }
 
 class _RootShell extends StatefulWidget {
-  const _RootShell();
+  const _RootShell({required this.session});
+
+  final MockRuntimeService session;
 
   @override
   State<_RootShell> createState() => _RootShellState();
@@ -79,12 +90,18 @@ class _RootShell extends StatefulWidget {
 class _RootShellState extends State<_RootShell> {
   int _currentIndex = 0;
 
-  static const List<Widget> _screens = <Widget>[
-    ChatScreen(),
-    RuntimeScreen(),
-    DiagnosticsScreen(),
-    SettingsScreen(),
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = <Widget>[
+      const ChatScreen(),
+      RuntimeScreen(session: widget.session),
+      const DiagnosticsScreen(),
+      SettingsScreen(session: widget.session),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
