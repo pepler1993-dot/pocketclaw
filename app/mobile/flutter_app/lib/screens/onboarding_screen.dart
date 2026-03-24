@@ -12,85 +12,253 @@ class OnboardingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colors = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const ClawBrandMark(),
-              const Spacer(),
-              Text(
-                'OpenClaw\nin your pocket.',
-                style: textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  height: 1.1,
-                ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: <Color>[
+                  colors.surface,
+                  Color.lerp(colors.surface, const Color(0xFF0E0E0E), 0.85)!,
+                ],
               ),
-              const SizedBox(height: 14),
-              Text(
-                'A focused mobile shell for runtime controls, diagnostics, and agent chat.',
-                style: textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      _Bullet(text: 'Dark, low-noise operational UI'),
-                      _Bullet(text: 'Fast access to runtime health'),
-                      _Bullet(text: 'Assistant-first diagnostics workflow'),
-                    ],
-                  ),
-                ),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: onContinue,
-                  icon: const Icon(Icons.arrow_forward),
-                  label: const Text('Set up provider'),
-                ),
-              ),
-            ],
+            ),
           ),
+          Positioned(
+            top: -120,
+            right: -80,
+            child: _GlowOrb(diameter: 280, color: colors.primary.withValues(alpha: 0.12)),
+          ),
+          Positioned(
+            bottom: 80,
+            left: -100,
+            child: _GlowOrb(diameter: 220, color: colors.secondary.withValues(alpha: 0.06)),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(22, 16, 22, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          const ClawBrandMark(size: 52),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: colors.surfaceContainerHighest.withValues(alpha: 0.9),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: colors.outline.withValues(alpha: 0.35)),
+                            ),
+                            child: Text(
+                              'Android-first · local where it matters',
+                              style: textTheme.labelSmall?.copyWith(
+                                letterSpacing: 0.4,
+                                color: colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 36),
+                          Text.rich(
+                            TextSpan(
+                              style: textTheme.headlineLarge?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                height: 1.05,
+                                letterSpacing: -0.5,
+                              ),
+                              children: <InlineSpan>[
+                                TextSpan(
+                                  text: 'OpenClaw',
+                                  style: TextStyle(color: colors.primary),
+                                ),
+                                TextSpan(
+                                  text: '\nin your pocket.',
+                                  style: TextStyle(color: colors.onSurface),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            'A calm interface for runtime control, diagnostics, and chat — without digging through terminals.',
+                            style: textTheme.bodyLarge?.copyWith(
+                              color: colors.onSurfaceVariant,
+                              height: 1.45,
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+                          Text(
+                            'YOU GET',
+                            style: textTheme.labelSmall?.copyWith(
+                              letterSpacing: 1.6,
+                              color: colors.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                colors: <Color>[
+                                  colors.primary.withValues(alpha: 0.22),
+                                  colors.outline.withValues(alpha: 0.25),
+                                ],
+                              ),
+                            ),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: colors.surfaceContainerHighest.withValues(alpha: 0.92),
+                                borderRadius: BorderRadius.circular(13),
+                                border: Border.all(color: colors.outline.withValues(alpha: 0.4)),
+                              ),
+                              child: const Padding(
+                                padding: EdgeInsets.fromLTRB(16, 18, 16, 18),
+                                child: Column(
+                                  children: <Widget>[
+                                    _FeatureRow(
+                                      icon: Icons.layers_outlined,
+                                      title: 'Operational dark UI',
+                                      subtitle: 'Low noise, high signal',
+                                    ),
+                                    SizedBox(height: 16),
+                                    _FeatureRow(
+                                      icon: Icons.monitor_heart_outlined,
+                                      title: 'Runtime health at a glance',
+                                      subtitle: 'Status, actions, checks',
+                                    ),
+                                    SizedBox(height: 16),
+                                    _FeatureRow(
+                                      icon: Icons.forum_outlined,
+                                      title: 'Assistant-ready chat',
+                                      subtitle: 'Voice or type — your choice',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Next: pick a provider — about a minute.',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: onContinue,
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 22),
+                    label: const Text(
+                      'Set up provider',
+                      style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.2),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlowOrb extends StatelessWidget {
+  const _GlowOrb({required this.diameter, required this.color});
+
+  final double diameter;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: diameter,
+        height: diameter,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color,
         ),
       ),
     );
   }
 }
 
-class _Bullet extends StatelessWidget {
-  const _Bullet({required this.text});
+class _FeatureRow extends StatelessWidget {
+  const _FeatureRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
 
-  final String text;
+  final IconData icon;
+  final String title;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Icon(
-              Icons.square_rounded,
-              size: 9,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+    final ColorScheme colors = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: colors.primaryContainer.withValues(alpha: 0.65),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.35)),
           ),
-          const SizedBox(width: 10),
-          Expanded(child: Text(text)),
-        ],
-      ),
+          child: Icon(icon, color: colors.primary, size: 22),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                title,
+                style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitle,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
