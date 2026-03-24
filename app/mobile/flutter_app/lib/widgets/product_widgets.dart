@@ -22,8 +22,13 @@ class ScreenHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(title, style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 4),
-              Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
             ],
           ),
         ),
@@ -58,7 +63,7 @@ class ClawBrandMark extends StatelessWidget {
           decoration: BoxDecoration(
             color: colors.primaryContainer,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: colors.primary.withOpacity(0.45)),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.45)),
           ),
           child: Icon(
             Icons.adb_rounded,
@@ -115,7 +120,12 @@ class SectionCard extends StatelessWidget {
             ),
             if (subtitle != null) ...<Widget>[
               const SizedBox(height: 4),
-              Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                subtitle!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
             ],
             const SizedBox(height: 12),
             child,

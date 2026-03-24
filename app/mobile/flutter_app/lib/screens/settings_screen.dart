@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:pocketclaw_flutter_app/l10n/app_localizations.dart';
 
+import '../models/app_locale_preference.dart';
 import '../models/openai_chat_model_option.dart';
 import '../models/runtime_deployment_model.dart';
-import '../services/mock_runtime_service.dart';
+import '../services/runtime_client.dart';
 import '../widgets/openai_api_key_section.dart';
 import '../widgets/product_widgets.dart';
 
@@ -11,13 +13,18 @@ class SettingsScreen extends StatelessWidget {
     super.key,
     required this.session,
     required this.onSignOut,
+    required this.localePreference,
+    required this.onLocaleChanged,
   });
 
-  final MockRuntimeService session;
+  final RuntimeClient session;
   final Future<void> Function() onSignOut;
+  final AppLocalePreference localePreference;
+  final ValueChanged<AppLocalePreference> onLocaleChanged;
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     return ListenableBuilder(
       listenable: session,
       builder: (BuildContext context, Widget? child) {
@@ -35,22 +42,62 @@ class SettingsScreen extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
           children: <Widget>[
-            const ScreenHeader(
-              title: 'Settings',
-              subtitle: 'OpenAI account, model, and runtime.',
-              trailing: Icon(Icons.settings_outlined),
+            ScreenHeader(
+              title: l10n.settingsTitle,
+              subtitle: l10n.settingsSubtitle,
+              trailing: const Icon(Icons.settings_outlined),
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: 'OpenAI',
-              subtitle: 'OAuth (PKCE) plus optional API key for chat. Key takes precedence for api.openai.com.',
+              title: l10n.languageSectionTitle,
+              subtitle: l10n.languageSectionSubtitle,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text('Chat model', style: Theme.of(context).textTheme.titleSmall),
+                  Text(l10n.languageDescription, style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<AppLocalePreference>(
+                    key: ValueKey<String>('locale_${localePreference.storageValue}'),
+                    initialValue: localePreference,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: <DropdownMenuItem<AppLocalePreference>>[
+                      DropdownMenuItem<AppLocalePreference>(
+                        value: AppLocalePreference.english,
+                        child: Text(l10n.languageEnglish),
+                      ),
+                      DropdownMenuItem<AppLocalePreference>(
+                        value: AppLocalePreference.german,
+                        child: Text(l10n.languageGerman),
+                      ),
+                      DropdownMenuItem<AppLocalePreference>(
+                        value: AppLocalePreference.system,
+                        child: Text(l10n.languageSystem),
+                      ),
+                    ],
+                    onChanged: (AppLocalePreference? value) {
+                      if (value != null) {
+                        onLocaleChanged(value);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            SectionCard(
+              title: l10n.settingsOpenAiSection,
+              subtitle: l10n.settingsOpenAiSectionSubtitle,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(l10n.settingsChatModel, style: Theme.of(context).textTheme.titleSmall),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
-                    value: rawModelId,
+                    key: ValueKey<String>('chat_model_$rawModelId'),
+                    initialValue: rawModelId,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       isDense: true,
@@ -86,18 +133,16 @@ class SettingsScreen extends StatelessWidget {
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
-                              title: const Text('Sign out'),
-                              content: const Text(
-                                'You will need to sign in with OpenAI again and pick a model.',
-                              ),
+                              title: Text(l10n.signOutDialogTitle),
+                              content: Text(l10n.signOutDialogBody),
                               actions: <Widget>[
                                 TextButton(
                                   onPressed: () => Navigator.pop(context, false),
-                                  child: const Text('Cancel'),
+                                  child: Text(l10n.signOutCancel),
                                 ),
                                 FilledButton(
                                   onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Sign out'),
+                                  child: Text(l10n.signOutConfirm),
                                 ),
                               ],
                             );
@@ -108,7 +153,7 @@ class SettingsScreen extends StatelessWidget {
                         }
                       },
                       icon: const Icon(Icons.logout),
-                      label: const Text('Sign out of OpenAI'),
+                      label: Text(l10n.settingsSignOut),
                     ),
                   ),
                 ],
@@ -116,13 +161,13 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SectionCard(
-              title: 'Runtime location',
+              title: l10n.settingsRuntimeLocation,
               child: Column(
                 children: <Widget>[
                   _SettingRow(
                     icon: Icons.smartphone_outlined,
-                    title: 'Where OpenClaw runs',
-                    description: session.deployment.shortDescription,
+                    title: l10n.settingsWhereRunsTitle,
+                    description: _deploymentDescriptionFor(l10n, session.deployment),
                     trailing: DropdownButton<String>(
                       value: session.deployment.displayLabel,
                       underline: const SizedBox.shrink(),
@@ -130,7 +175,7 @@ class SettingsScreen extends StatelessWidget {
                           .map(
                             (String label) => DropdownMenuItem<String>(
                               value: label,
-                              child: Text(label),
+                              child: Text(_deploymentMenuLabel(l10n, label)),
                             ),
                           )
                           .toList(),
@@ -149,13 +194,13 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SectionCard(
-              title: 'Runtime preferences',
+              title: l10n.settingsRuntimePrefs,
               child: Column(
                 children: <Widget>[
                   _SettingRow(
                     icon: Icons.bolt_outlined,
-                    title: 'Auto-start runtime',
-                    description: 'Launch services when app opens',
+                    title: l10n.settingsAutoStartTitle,
+                    description: l10n.settingsAutoStartDesc,
                     trailing: Switch(
                       value: session.autoStartRuntime,
                       onChanged: (bool value) {
@@ -166,15 +211,24 @@ class SettingsScreen extends StatelessWidget {
                   const Divider(height: 20),
                   _SettingRow(
                     icon: Icons.notifications_outlined,
-                    title: 'Alert level',
-                    description: 'Only notify on warnings and failures',
+                    title: l10n.settingsAlertTitle,
+                    description: l10n.settingsAlertDesc,
                     trailing: DropdownButton<String>(
                       value: session.alertLevel,
                       underline: const SizedBox.shrink(),
-                      items: const <DropdownMenuItem<String>>[
-                        DropdownMenuItem<String>(value: 'Quiet', child: Text('Quiet')),
-                        DropdownMenuItem<String>(value: 'Moderate', child: Text('Moderate')),
-                        DropdownMenuItem<String>(value: 'Verbose', child: Text('Verbose')),
+                      items: <DropdownMenuItem<String>>[
+                        DropdownMenuItem<String>(
+                          value: 'Quiet',
+                          child: Text(l10n.alertQuiet),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'Moderate',
+                          child: Text(l10n.alertModerate),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'Verbose',
+                          child: Text(l10n.alertVerbose),
+                        ),
                       ],
                       onChanged: (String? value) {
                         if (value == null) {
@@ -187,8 +241,8 @@ class SettingsScreen extends StatelessWidget {
                   const Divider(height: 20),
                   _SettingRow(
                     icon: Icons.wifi_tethering_outlined,
-                    title: 'Sync frequency',
-                    description: 'Push local state on a fixed cadence',
+                    title: l10n.settingsSyncTitle,
+                    description: l10n.settingsSyncDesc,
                     trailing: DropdownButton<String>(
                       value: session.syncFrequencyLabel,
                       underline: const SizedBox.shrink(),
@@ -210,13 +264,13 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SectionCard(
-              title: 'Data and privacy',
+              title: l10n.settingsDataPrivacy,
               child: Column(
                 children: <Widget>[
                   _SettingRow(
                     icon: Icons.analytics_outlined,
-                    title: 'Diagnostics upload',
-                    description: 'Share anonymized crash and performance data',
+                    title: l10n.settingsDiagUploadTitle,
+                    description: l10n.settingsDiagUploadDesc,
                     trailing: Switch(
                       value: session.diagnosticsUploadEnabled,
                       onChanged: (bool value) {
@@ -227,11 +281,15 @@ class SettingsScreen extends StatelessWidget {
                   const Divider(height: 20),
                   _SettingRow(
                     icon: Icons.delete_outline,
-                    title: 'Clear local cache',
-                    description: 'Remove downloaded logs and temp snapshots',
+                    title: l10n.settingsClearCacheTitle,
+                    description: l10n.settingsClearCacheDesc,
                     trailing: TextButton(
-                      onPressed: () {},
-                      child: const Text('Clear'),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l10n.settingsClearCacheNotAvailable)),
+                        );
+                      },
+                      child: Text(l10n.settingsClearCacheButton),
                     ),
                   ),
                 ],
@@ -241,6 +299,34 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+String _deploymentMenuLabel(AppLocalizations l10n, String englishValue) {
+  switch (englishValue) {
+    case RuntimeDeploymentModel.labelThisPhone:
+      return l10n.deploymentThisPhone;
+    case RuntimeDeploymentModel.labelHomeNetworkLan:
+      return l10n.deploymentLan;
+    case RuntimeDeploymentModel.labelOpenClawCloud:
+      return l10n.deploymentCloud;
+    case RuntimeDeploymentModel.labelCustomGateway:
+      return l10n.deploymentCustom;
+    default:
+      return englishValue;
+  }
+}
+
+String _deploymentDescriptionFor(AppLocalizations l10n, RuntimeDeploymentModel d) {
+  switch (d.kind) {
+    case RuntimeDeploymentKind.thisPhone:
+      return l10n.deploymentThisPhoneDesc;
+    case RuntimeDeploymentKind.homeNetworkLan:
+      return l10n.deploymentLanDesc;
+    case RuntimeDeploymentKind.openClawCloud:
+      return l10n.deploymentCloudDesc;
+    case RuntimeDeploymentKind.customGateway:
+      return l10n.deploymentCustomDesc;
   }
 }
 
@@ -262,7 +348,7 @@ class _SettingRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Icon(icon),
+        Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -270,7 +356,12 @@ class _SettingRow extends StatelessWidget {
             children: <Widget>[
               Text(title, style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: 2),
-              Text(description, style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                description,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
             ],
           ),
         ),

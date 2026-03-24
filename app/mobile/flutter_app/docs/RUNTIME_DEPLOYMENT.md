@@ -20,10 +20,10 @@ These are orthogonal: you can e.g. target a LAN gateway while still using a spec
 | Enum + labels + `fromSelectionLabel` | `lib/models/runtime_deployment_model.dart` |
 | Persistence (`pc_runtime_deployment`) | `lib/persistence/app_prefs.dart` — `AppPrefsSnapshot.runtimeDeploymentLabel`, `saveAfterSetup`, `saveRuntimeDeploymentLabel` |
 | Onboarding flow state | `lib/flow/app_flow_controller.dart` — `selectedDeployment`, `setDeployment`, `hydrateFromPrefs`, `completeSetup` |
-| Hydration + session wiring | `lib/app.dart` — passes `snap.runtimeDeploymentLabel` into the flow controller; builds `MockRuntimeService` with `deployment:` |
+| Hydration + session wiring | `lib/app.dart` — passes `snap.runtimeDeploymentLabel` into the flow controller; builds a `MockRuntimeService` (`RuntimeClient`) with `deployment:` |
 | First-run setup | OAuth sign-in (`openai_login_screen.dart`) then model choice (`openai_model_select_screen.dart`); runtime location remains in **Settings** (defaults to *This phone*). |
 | Settings | `lib/screens/settings_screen.dart` — “Runtime location” dropdown calling `session.setDeployment` |
-| Mock behavior | `lib/services/mock_runtime_service.dart` — seeds diagnostics, `modeLabel` while running/degraded, chat hints, prefs save on change |
+| Runtime contract + mock | `lib/services/runtime_client.dart` — UI-facing API; `lib/services/mock_runtime_service.dart` — seeds diagnostics, `modeLabel` while running/degraded, chat hints, prefs save on change |
 
 ## Persisted values
 
@@ -43,4 +43,4 @@ These are orthogonal: you can e.g. target a LAN gateway while still using a spec
 ## Follow-up (not in scope here)
 
 - Real gateway discovery, LAN URLs, or cloud auth.
-- Syncing `AppFlowController.selectedDeployment` when only `MockRuntimeService` changes (Settings already persists; a full app reset/re-hydrate would read prefs again).
+- Syncing `AppFlowController.selectedDeployment` when only the session’s `RuntimeClient` changes (Settings already persists; a full app reset/re-hydrate would read prefs again).

@@ -2,9 +2,10 @@ import 'dart:async' show unawaited;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:pocketclaw_flutter_app/l10n/app_localizations.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-import '../services/mock_runtime_service.dart';
+import '../services/runtime_client.dart';
 import '../services/openai_chat_service.dart';
 import '../widgets/product_widgets.dart';
 
@@ -27,7 +28,7 @@ class _ChatBubble {
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key, required this.session});
 
-  final MockRuntimeService session;
+  final RuntimeClient session;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -38,25 +39,39 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scroll = ScrollController();
   final SpeechToText _speech = SpeechToText();
 
-  late List<_ChatBubble> _messages;
+  List<_ChatBubble> _messages = <_ChatBubble>[];
   bool _speechReady = false;
   String? _pendingAttachmentName;
+  bool _welcomeSeeded = false;
 
   @override
   void initState() {
     super.initState();
+    _controller.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    _initSpeech();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_welcomeSeeded) {
+      return;
+    }
+    _welcomeSeeded = true;
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final String pc = widget.session.providerConfig.displayLabel;
     _messages = <_ChatBubble>[
       _ChatBubble(
-        author: 'PocketClaw',
-        text:
-            'Model/API: $pc. Gateway: ${widget.session.deployment.displayLabel}. '
-            'Ask for runtime status, attach a file for a mock hand-off, or use the mic.',
+        author: l10n.chatAuthorAssistant,
+        text: l10n.chatWelcomeBody(pc, widget.session.deployment.displayLabel),
         isAssistant: true,
         timestamp: _timeLabel(DateTime.now()),
       ),
     ];
-    _initSpeech();
   }
 
   Future<void> _initSpeech() async {
@@ -66,7 +81,7 @@ class _ChatScreenState extends State<ChatScreen> {
           return;
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Speech: ${error.errorMsg}')),
+          SnackBar(content: Text(error.errorMsg)),
         );
       },
       onStatus: (String status) {
@@ -116,9 +131,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!_speechReady) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Speech recognition is not available on this device.'),
-          ),
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatSpeechUnavailable)),
         );
       }
       return;
@@ -155,6 +168,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _send() async {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final String text = _controller.text.trim();
     final String? attachment = _pendingAttachmentName;
     if (text.isEmpty && attachment == null) {
@@ -170,8 +184,8 @@ class _ChatScreenState extends State<ChatScreen> {
       _messages = <_ChatBubble>[
         ..._messages,
         _ChatBubble(
-          author: 'You',
-          text: text.isEmpty ? '(no message)' : text,
+          author: l10n.chatAuthorYou,
+          text: text.isEmpty ? l10n.chatNoMessagePlaceholder : text,
           isAssistant: false,
           timestamp: _timeLabel(now),
           attachmentName: attachment,
@@ -196,6 +210,7 @@ class _ChatScreenState extends State<ChatScreen> {
           reply = api;
         } else {
           reply = widget.session.mockAssistantReply(
+            l10n,
             text,
             attachmentName: attachment,
           );
@@ -203,16 +218,18 @@ class _ChatScreenState extends State<ChatScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('OpenAI: $e — using mock reply.')),
+            SnackBar(content: Text(l10n.chatOpenAiErrorFallback(e.toString()))),
           );
         }
         reply = widget.session.mockAssistantReply(
+          l10n,
           text,
           attachmentName: attachment,
         );
       }
     } else {
       reply = widget.session.mockAssistantReply(
+        l10n,
         text,
         attachmentName: attachment,
       );
@@ -222,7 +239,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _messages = <_ChatBubble>[
         ..._messages,
         _ChatBubble(
-          author: 'PocketClaw',
+          author: l10n.chatAuthorAssistant,
           text: reply,
           isAssistant: true,
           timestamp: _timeLabel(replyAt),
@@ -247,8 +264,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final bool listening = _speech.isListening;
     final ColorScheme colors = Theme.of(context).colorScheme;
+    final bool canSend =
+        _controller.text.trim().isNotEmpty || _pendingAttachmentName != null;
 
     return Column(
       children: <Widget>[
@@ -257,15 +277,15 @@ class _ChatScreenState extends State<ChatScreen> {
             controller: _scroll,
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
             children: <Widget>[
-              const ScreenHeader(
-                title: 'Chat',
-                subtitle: 'Talk to PocketClaw about runtime and diagnostics.',
-                trailing: Icon(Icons.bolt_outlined),
+              ScreenHeader(
+                title: l10n.chatTitle,
+                subtitle: l10n.chatSubtitle,
+                trailing: const Icon(Icons.bolt_outlined),
               ),
               const SizedBox(height: 16),
               SectionCard(
-                title: 'Assistant',
-                subtitle: 'Mock replies (no network yet) · voice: microphone',
+                title: l10n.chatAssistantSection,
+                subtitle: l10n.chatAssistantSubtitle,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -278,10 +298,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
-                      child: Text(
-                        'Try: “runtime status”, attach a file, or use the mic for speech-to-text.',
-                      ),
+                    Expanded(
+                      child: Text(l10n.chatAssistantHint),
                     ),
                   ],
                 ),
@@ -319,15 +337,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     IconButton(
                       onPressed: _pickAttachment,
                       icon: const Icon(Icons.add_circle_outline),
-                      tooltip: 'Attach file',
+                      tooltip: l10n.chatAttachTooltip,
                     ),
                     Expanded(
                       child: TextField(
                         controller: _controller,
                         onSubmitted: (_) => _send(),
-                        decoration: const InputDecoration(
-                          hintText: 'Message PocketClaw',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          hintText: l10n.chatMessageHint,
+                          border: const OutlineInputBorder(),
                           isDense: true,
                         ),
                         minLines: 1,
@@ -344,7 +362,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         backgroundColor: listening ? colors.primaryContainer : null,
                         foregroundColor: listening ? colors.onPrimaryContainer : null,
                       ),
-                      tooltip: listening ? 'Stop dictation' : 'Speech to text',
+                      tooltip: listening ? l10n.chatSpeechStopTooltip : l10n.chatSpeechTooltip,
                       icon: Icon(
                         listening ? Icons.stop_circle_outlined : Icons.mic_none_outlined,
                         size: 22,
@@ -352,8 +370,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                     const SizedBox(width: 4),
                     IconButton.filled(
-                      onPressed: _send,
-                      tooltip: 'Send',
+                      onPressed: canSend ? _send : null,
+                      tooltip: l10n.chatSendTooltip,
                       style: IconButton.styleFrom(
                         visualDensity: VisualDensity.compact,
                         minimumSize: const Size(40, 40),

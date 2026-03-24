@@ -1,32 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:pocketclaw_flutter_app/l10n/app_localizations.dart';
 
 import '../models/runtime_state_model.dart';
-import '../services/mock_runtime_service.dart';
+import '../services/runtime_client.dart';
 import '../widgets/product_widgets.dart';
 
 class RuntimeScreen extends StatelessWidget {
   const RuntimeScreen({super.key, required this.session});
 
-  final MockRuntimeService session;
+  final RuntimeClient session;
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     return ListenableBuilder(
       listenable: session,
       builder: (BuildContext context, Widget? child) {
         final RuntimeStateModel state = session.runtimeState;
-        final _StatusPresentation pres = _StatusPresentation.fromLifecycle(state.lifecycle);
+        final _StatusPresentation pres = _StatusPresentation.fromLifecycle(l10n, state.lifecycle);
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
           children: <Widget>[
-            const ScreenHeader(
-              title: 'Runtime',
-              subtitle: 'Control background activity and inspect live state.',
-              trailing: Icon(Icons.play_circle_outline),
+            ScreenHeader(
+              title: l10n.runtimeTitle,
+              subtitle: l10n.runtimeSubtitle,
+              trailing: const Icon(Icons.play_circle_outline),
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: 'Runtime status',
+              title: l10n.runtimeStatusSection,
               subtitle: session.heartbeatSubtitle,
               trailing: StatusDot(
                 color: pres.dotColor,
@@ -35,17 +37,22 @@ class RuntimeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text('Mode: ${state.modeLabel}'),
-                  const SizedBox(height: 4),
-                  Text(state.workersSummary),
-                  const SizedBox(height: 4),
-                  Text('Queue depth: ${state.queueDepth} pending tasks'),
+                  Text(l10n.runtimeModeLine(state.modeLabel), style: Theme.of(context).textTheme.bodyLarge),
+                  const SizedBox(height: 6),
+                  Text(state.workersSummary, style: Theme.of(context).textTheme.bodyMedium),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.runtimeQueueLine(state.queueDepth),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 12),
             SectionCard(
-              title: 'Quick actions',
+              title: l10n.runtimeQuickActions,
               child: Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -56,7 +63,7 @@ class RuntimeScreen extends StatelessWidget {
                         session.startRuntime();
                       },
                       icon: const Icon(Icons.play_arrow),
-                      label: const Text('Start runtime'),
+                      label: Text(l10n.runtimeStart),
                     )
                   else ...<Widget>[
                     FilledButton.icon(
@@ -81,14 +88,14 @@ class RuntimeScreen extends StatelessWidget {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.task_alt_outlined),
-                      label: Text(session.healthCheckInProgress ? 'Checking…' : 'Run health check'),
+                      label: Text(session.healthCheckInProgress ? l10n.runtimeHealthChecking : l10n.runtimeHealthCheck),
                     ),
                     OutlinedButton.icon(
                       onPressed: () {
                         session.toggleQueuePaused();
                       },
                       icon: const Icon(Icons.schedule_outlined),
-                      label: Text(session.queuePaused ? 'Resume queue' : 'Pause queue'),
+                      label: Text(session.queuePaused ? l10n.runtimeQueueResume : l10n.runtimeQueuePause),
                     ),
                     OutlinedButton.icon(
                       onPressed: state.lifecycle == RuntimeLifecycle.stopped
@@ -97,7 +104,7 @@ class RuntimeScreen extends StatelessWidget {
                               session.stopRuntime();
                             },
                       icon: const Icon(Icons.stop_outlined),
-                      label: const Text('Stop runtime'),
+                      label: Text(l10n.runtimeStop),
                     ),
                   ],
                 ],
@@ -105,10 +112,10 @@ class RuntimeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SectionCard(
-              title: 'Health checks',
+              title: l10n.runtimeHealthChecks,
               child: state.healthChecks.isEmpty
                   ? Text(
-                      'No checks while runtime is stopped.',
+                      l10n.runtimeNoChecksStopped,
                       style: Theme.of(context).textTheme.bodySmall,
                     )
                   : Column(
@@ -137,32 +144,32 @@ class _StatusPresentation {
   final Color dotColor;
   final String label;
 
-  factory _StatusPresentation.fromLifecycle(RuntimeLifecycle lifecycle) {
+  factory _StatusPresentation.fromLifecycle(AppLocalizations l10n, RuntimeLifecycle lifecycle) {
     switch (lifecycle) {
       case RuntimeLifecycle.stopped:
         return _StatusPresentation(
           dotColor: Colors.grey.shade600,
-          label: 'Stopped',
+          label: l10n.runtimeDotStopped,
         );
       case RuntimeLifecycle.starting:
         return _StatusPresentation(
           dotColor: Colors.blue.shade400,
-          label: 'Starting',
+          label: l10n.runtimeDotStarting,
         );
       case RuntimeLifecycle.running:
         return _StatusPresentation(
           dotColor: Colors.green.shade600,
-          label: 'Healthy',
+          label: l10n.runtimeDotHealthy,
         );
       case RuntimeLifecycle.degraded:
         return _StatusPresentation(
           dotColor: Colors.orange.shade700,
-          label: 'Attention',
+          label: l10n.runtimeDotAttention,
         );
       case RuntimeLifecycle.error:
         return _StatusPresentation(
           dotColor: Colors.red.shade700,
-          label: 'Error',
+          label: l10n.runtimeDotError,
         );
     }
   }

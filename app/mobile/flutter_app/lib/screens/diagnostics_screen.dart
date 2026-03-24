@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:pocketclaw_flutter_app/l10n/app_localizations.dart';
 
 import '../models/diagnostic_event.dart';
 import '../models/runtime_state_model.dart';
-import '../services/mock_runtime_service.dart';
+import '../services/runtime_client.dart';
 import '../widgets/product_widgets.dart';
 
 class DiagnosticsScreen extends StatelessWidget {
   const DiagnosticsScreen({super.key, required this.session});
 
-  final MockRuntimeService session;
+  final RuntimeClient session;
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     return ListenableBuilder(
       listenable: session,
       builder: (BuildContext context, Widget? child) {
@@ -23,19 +25,19 @@ class DiagnosticsScreen extends StatelessWidget {
         final String checksLabel = total == 0 ? '—' : '$passing / $total';
         final String lastScan = session.lastHealthCheckAt == null
             ? '—'
-            : _formatDayTime(session.lastHealthCheckAt!);
+            : _formatDayTime(l10n, session.lastHealthCheckAt!);
 
         final Color summaryColor;
         final String summaryLabel;
         if (state.lifecycle == RuntimeLifecycle.stopped) {
           summaryColor = Colors.grey.shade600;
-          summaryLabel = 'Stopped';
+          summaryLabel = l10n.diagnosticsSummaryStopped;
         } else if (warnings > 0) {
           summaryColor = Colors.orange.shade700;
-          summaryLabel = 'Attention';
+          summaryLabel = l10n.diagnosticsSummaryAttention;
         } else {
           summaryColor = Colors.green.shade600;
-          summaryLabel = 'Healthy';
+          summaryLabel = l10n.diagnosticsSummaryHealthy;
         }
 
         final List<DiagnosticEvent> events = session.diagnosticEvents.take(8).toList();
@@ -58,20 +60,20 @@ class DiagnosticsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _SummaryMetric(label: 'Checks passing', value: checksLabel),
+                  _SummaryMetric(label: l10n.diagnosticsChecksPassing, value: checksLabel),
                   const SizedBox(height: 8),
-                  _SummaryMetric(label: 'Active warnings', value: '$warnings'),
+                  _SummaryMetric(label: l10n.diagnosticsActiveWarnings, value: '$warnings'),
                   const SizedBox(height: 8),
-                  _SummaryMetric(label: 'Last full scan', value: lastScan),
+                  _SummaryMetric(label: l10n.diagnosticsLastScan, value: lastScan),
                 ],
               ),
             ),
             const SizedBox(height: 12),
             SectionCard(
-              title: 'Recent events',
+              title: l10n.diagnosticsRecentEvents,
               child: events.isEmpty
                   ? Text(
-                      'No events yet.',
+                      l10n.diagnosticsNoEvents,
                       style: Theme.of(context).textTheme.bodySmall,
                     )
                   : Column(
@@ -89,8 +91,8 @@ class DiagnosticsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SectionCard(
-              title: 'Log preview',
-              subtitle: 'Most recent entries',
+              title: l10n.diagnosticsLogPreview,
+              subtitle: l10n.diagnosticsLogPreviewSubtitle,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
@@ -112,10 +114,17 @@ class DiagnosticsScreen extends StatelessWidget {
     );
   }
 
-  static String _formatDayTime(DateTime t) {
+  static String _formatDayTime(AppLocalizations l10n, DateTime t) {
+    final DateTime now = DateTime.now();
     final String h = t.hour.toString().padLeft(2, '0');
     final String m = t.minute.toString().padLeft(2, '0');
-    return 'Today, $h:$m';
+    final bool sameDay = t.year == now.year && t.month == now.month && t.day == now.day;
+    if (sameDay) {
+      return l10n.diagnosticsToday('$h:$m');
+    }
+    final String date =
+        '${t.day.toString().padLeft(2, '0')}.${t.month.toString().padLeft(2, '0')}.${t.year}';
+    return l10n.diagnosticsDateTime(date, '$h:$m');
   }
 }
 

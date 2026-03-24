@@ -9,7 +9,7 @@ Single place for **what to do next**. Older split docs (`NEXT_STEPS_PRIORITY`, `
 
 ## Then (product + mock depth)
 
-1. **Runtime abstraction:** introduce a small `RuntimeClient` interface (connect, status stream, lifecycle) with the current mock as one implementation; second implementation can wrap Android service / gateway later.
+1. **Runtime abstraction:** `RuntimeClient` in `app/mobile/flutter_app/lib/services/runtime_client.dart` — `MockRuntimeService` is the first implementation; add a second (Android gateway / IPC) when ready.
 2. **Chat:** streaming (SSE) responses, token refresh for OAuth if you keep it, and **no secrets in logs**.
 
 ## Parallel (Android / OpenClaw)

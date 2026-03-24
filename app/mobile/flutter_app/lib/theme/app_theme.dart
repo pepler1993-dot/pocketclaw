@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppTheme {
   const AppTheme._();
@@ -20,11 +21,49 @@ class AppTheme {
       onError: Color(0xFF2A0000),
     );
 
+    final TextTheme base = ThemeData(
+      colorScheme: colorScheme,
+      brightness: Brightness.dark,
+      useMaterial3: true,
+    ).textTheme;
+
+    final TextTheme textTheme = base.copyWith(
+      headlineSmall: base.headlineSmall?.copyWith(
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
+      ),
+      titleLarge: base.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+      titleMedium: base.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+      bodyMedium: base.bodyMedium?.copyWith(height: 1.45),
+      bodySmall: base.bodySmall?.copyWith(
+        color: colorScheme.onSurfaceVariant,
+        height: 1.35,
+      ),
+    );
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: colorScheme.surface,
       brightness: Brightness.dark,
+      textTheme: textTheme,
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        titleTextStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        contentTextStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onInverseSurface),
+        backgroundColor: colorScheme.inverseSurface,
+        actionTextColor: colorScheme.inversePrimary,
+      ),
       cardTheme: CardThemeData(
         color: const Color(0xFF121212),
         margin: EdgeInsets.zero,

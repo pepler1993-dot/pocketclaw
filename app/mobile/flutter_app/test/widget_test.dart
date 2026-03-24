@@ -15,7 +15,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 2));
 
-    expect(find.textContaining('OpenClaw'), findsOneWidget);
+    expect(find.textContaining('in your pocket'), findsOneWidget);
     expect(find.text('Connection setup'), findsOneWidget);
   });
 }

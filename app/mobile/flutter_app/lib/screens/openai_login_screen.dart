@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:pocketclaw_flutter_app/l10n/app_localizations.dart';
 
 import '../config/openai_oauth_config.dart';
 import '../flow/app_flow_controller.dart';
@@ -34,7 +35,7 @@ class _OpenAiLoginScreenState extends State<OpenAiLoginScreen> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sign-in failed: $e')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.openAiSignInFailed(e.toString()))),
       );
     } finally {
       if (mounted) {
@@ -61,11 +62,12 @@ class _OpenAiLoginScreenState extends State<OpenAiLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
     final bool configured = OpenAiOAuthConfig.isConfigured;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign in with OpenAI')),
+      appBar: AppBar(title: Text(l10n.openAiSignInTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: <Widget>[
@@ -106,7 +108,7 @@ class _OpenAiLoginScreenState extends State<OpenAiLoginScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.login),
-              label: Text(configured ? 'Sign in with OpenAI' : 'OAuth not configured'),
+              label: Text(configured ? l10n.openAiSignInButton : l10n.openAiOAuthDisabled),
             ),
           ),
           if (kDebugMode) ...<Widget>[
@@ -115,7 +117,7 @@ class _OpenAiLoginScreenState extends State<OpenAiLoginScreen> {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: _busy ? null : _signInSimulated,
-                child: const Text('Simulate OAuth (debug only)'),
+                child: Text(l10n.openAiSimulateDebug),
               ),
             ),
           ],

@@ -13,6 +13,7 @@ All product and engineering docs live under **`docs/`** (except the root `README
 | **Dependency audit** | [dependencies/](dependencies/) |
 | **Ideas, issue drafts** | [meta/](meta/) |
 | **Status & agent handoff** | [development/](development/) |
+| **Manual QA / test checklist (Flutter)** | [development/MANUAL_TEST_PROCESS.md](development/MANUAL_TEST_PROCESS.md) |
 | **What to do next** | [planning/NEXT_STEPS.md](planning/NEXT_STEPS.md) |
 
 ## Flutter app (code-adjacent)

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pocketclaw_flutter_app/l10n/app_localizations.dart';
 
 import '../widgets/product_widgets.dart';
 
@@ -12,6 +13,7 @@ class OnboardingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final ColorScheme colors = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
@@ -63,7 +65,7 @@ class OnboardingScreen extends StatelessWidget {
                               border: Border.all(color: colors.outline.withValues(alpha: 0.35)),
                             ),
                             child: Text(
-                              'Android-first · local where it matters',
+                              l10n.onboardingBadge,
                               style: textTheme.labelSmall?.copyWith(
                                 letterSpacing: 0.4,
                                 color: colors.onSurfaceVariant,
@@ -92,7 +94,7 @@ class OnboardingScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 14),
                           Text(
-                            'A calm interface for runtime control, diagnostics, and chat — without digging through terminals.',
+                            l10n.onboardingIntro,
                             style: textTheme.bodyLarge?.copyWith(
                               color: colors.onSurfaceVariant,
                               height: 1.45,
@@ -100,7 +102,7 @@ class OnboardingScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 28),
                           Text(
-                            'YOU GET',
+                            l10n.onboardingYouGet,
                             style: textTheme.labelSmall?.copyWith(
                               letterSpacing: 1.6,
                               color: colors.onSurfaceVariant,
@@ -158,7 +160,7 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Next: pick a provider — about a minute.',
+                    l10n.onboardingFooter,
                     style: textTheme.bodySmall?.copyWith(
                       color: colors.onSurfaceVariant,
                     ),
@@ -173,9 +175,9 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                     onPressed: onContinue,
                     icon: const Icon(Icons.arrow_forward_rounded, size: 22),
-                    label: const Text(
-                      'Connection setup',
-                      style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.2),
+                    label: Text(
+                      l10n.onboardingContinue,
+                      style: const TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.2),
                     ),
                   ),
                 ],

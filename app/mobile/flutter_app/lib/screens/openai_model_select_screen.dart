@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pocketclaw_flutter_app/l10n/app_localizations.dart';
 
 import '../flow/app_flow_controller.dart';
 import '../models/openai_chat_model_option.dart';
@@ -29,10 +30,11 @@ class _OpenAiModelSelectScreenState extends State<OpenAiModelSelectScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Choose a model')),
+      appBar: AppBar(title: Text(l10n.modelSelectTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: <Widget>[
@@ -51,24 +53,26 @@ class _OpenAiModelSelectScreenState extends State<OpenAiModelSelectScreen> {
           ),
           const SizedBox(height: 16),
           Card(
-            child: Column(
-              children: OpenAiChatModelOption.defaults
-                  .map(
-                    (OpenAiChatModelOption m) => RadioListTile<String>(
-                      value: m.id,
-                      groupValue: _selectedId,
-                      title: Text(m.label),
-                      subtitle: m.subtitle != null ? Text(m.subtitle!) : null,
-                      onChanged: (String? value) {
-                        if (value == null) {
-                          return;
-                        }
-                        setState(() => _selectedId = value);
-                        widget.flow.setOpenAiModelId(value);
-                      },
-                    ),
-                  )
-                  .toList(),
+            child: RadioGroup<String>(
+              groupValue: _selectedId,
+              onChanged: (String? value) {
+                if (value == null) {
+                  return;
+                }
+                setState(() => _selectedId = value);
+                widget.flow.setOpenAiModelId(value);
+              },
+              child: Column(
+                children: OpenAiChatModelOption.defaults
+                    .map(
+                      (OpenAiChatModelOption m) => RadioListTile<String>(
+                            value: m.id,
+                            title: Text(m.label),
+                            subtitle: m.subtitle != null ? Text(m.subtitle!) : null,
+                          ),
+                    )
+                    .toList(),
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -77,7 +81,7 @@ class _OpenAiModelSelectScreenState extends State<OpenAiModelSelectScreen> {
             child: FilledButton.icon(
               onPressed: () => widget.flow.completeModelSelection(),
               icon: const Icon(Icons.check),
-              label: const Text('Continue to PocketClaw'),
+              label: Text(l10n.modelSelectContinue),
             ),
           ),
         ],

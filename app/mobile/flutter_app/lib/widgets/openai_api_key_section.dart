@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pocketclaw_flutter_app/l10n/app_localizations.dart';
 
 import '../persistence/openai_token_store.dart';
 
@@ -44,7 +45,7 @@ class _OpenAiApiKeySectionState extends State<OpenAiApiKeySection> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('API key saved on this device.')),
+      SnackBar(content: Text(AppLocalizations.of(context)!.openAiApiKeySaved)),
     );
     await _refresh();
   }
@@ -55,13 +56,14 @@ class _OpenAiApiKeySectionState extends State<OpenAiApiKeySection> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('API key removed.')),
+      SnackBar(content: Text(AppLocalizations.of(context)!.openAiApiKeyRemoved)),
     );
     await _refresh();
   }
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
 
     if (_loading) {
@@ -74,11 +76,10 @@ class _OpenAiApiKeySectionState extends State<OpenAiApiKeySection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text('API key (optional)', style: theme.textTheme.titleSmall),
+        Text(l10n.openAiApiKeyTitle, style: theme.textTheme.titleSmall),
         const SizedBox(height: 4),
         Text(
-          'For reliable access to api.openai.com, paste an API key from '
-          'platform.openai.com/api-keys. Stored encrypted on device only; never logged.',
+          l10n.openAiApiKeyBody,
           style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 10),
@@ -91,7 +92,7 @@ class _OpenAiApiKeySectionState extends State<OpenAiApiKeySection> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'A key is saved. Enter a new one to replace it.',
+                    l10n.openAiApiKeyHasSaved,
                     style: theme.textTheme.bodySmall,
                   ),
                 ),
@@ -102,10 +103,10 @@ class _OpenAiApiKeySectionState extends State<OpenAiApiKeySection> {
           controller: _controller,
           obscureText: true,
           autocorrect: false,
-          decoration: const InputDecoration(
-            labelText: 'OpenAI API key',
-            hintText: 'sk-…',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.openAiApiKeyFieldLabel,
+            hintText: l10n.openAiApiKeyFieldHint,
+            border: const OutlineInputBorder(),
             isDense: true,
           ),
         ),
@@ -114,13 +115,13 @@ class _OpenAiApiKeySectionState extends State<OpenAiApiKeySection> {
           children: <Widget>[
             FilledButton.tonal(
               onPressed: _save,
-              child: const Text('Save key'),
+              child: Text(l10n.openAiApiKeySave),
             ),
             if (_hasStoredKey) ...<Widget>[
               const SizedBox(width: 12),
               TextButton(
                 onPressed: _remove,
-                child: const Text('Remove key'),
+                child: Text(l10n.openAiApiKeyRemove),
               ),
             ],
           ],

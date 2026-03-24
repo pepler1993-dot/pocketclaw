@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
   crypto: ^3.0.6
   file_picker: ^8.1.4
   flutter_secure_storage: ^9.2.4
@@ -23,4 +26,5 @@ dev_dependencies:
   flutter_lints: ^4.0.0
 
 flutter:
+  generate: true
   uses-material-design: true

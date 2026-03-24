@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/app_locale_preference.dart';
 import '../models/provider_config_model.dart';
 import '../models/runtime_deployment_model.dart';
 
@@ -45,6 +46,18 @@ abstract final class AppPrefs {
   static const String _kAlertLevel = 'pc_alert_level';
   static const String _kSyncFreq = 'pc_sync_frequency';
   static const String _kDiagUpload = 'pc_diagnostics_upload';
+  static const String _kLocale = 'pc_locale';
+
+  /// Default UI language is English; optional German or system locale.
+  static Future<AppLocalePreference> loadLocalePreference() async {
+    final SharedPreferences p = await SharedPreferences.getInstance();
+    return appLocalePreferenceFromStorage(p.getString(_kLocale));
+  }
+
+  static Future<void> saveLocalePreference(AppLocalePreference value) async {
+    final SharedPreferences p = await SharedPreferences.getInstance();
+    await p.setString(_kLocale, value.storageValue);
+  }
 
   static Future<AppPrefsSnapshot> load() async {
     final SharedPreferences p = await SharedPreferences.getInstance();

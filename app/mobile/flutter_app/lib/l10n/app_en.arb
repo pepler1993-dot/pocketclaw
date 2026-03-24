@@ -1,0 +1,208 @@
+{
+  "@@locale": "en",
+  "appTitle": "PocketClaw",
+  "loadingApp": "Loading PocketClaw…",
+  "navChat": "Chat",
+  "navRuntime": "Runtime",
+  "navDiagnostics": "Diagnostics",
+  "navSettings": "Settings",
+  "languageSectionTitle": "Language",
+  "languageSectionSubtitle": "English is the default. German is optional.",
+  "languageEnglish": "English",
+  "languageGerman": "German",
+  "languageSystem": "System default",
+  "languageDescription": "Choose app language. “System” follows your device settings (falls back to English).",
+  "onboardingBadge": "Android-first · local where it matters",
+  "onboardingHeadlinePart1": "OpenClaw",
+  "onboardingHeadlinePart2": "\nin your pocket.",
+  "onboardingIntro": "A calm mobile shell for OpenClaw: chat, runtime health, and diagnostics without digging through config files.",
+  "onboardingYouGet": "YOU GET",
+  "onboardingFeature1Title": "Operational dark UI",
+  "onboardingFeature1Subtitle": "Low noise, high signal",
+  "onboardingFeature2Title": "Runtime health at a glance",
+  "onboardingFeature2Subtitle": "Status, actions, checks",
+  "onboardingFeature3Title": "Assistant-ready chat",
+  "onboardingFeature3Subtitle": "Voice or type — your choice",
+  "onboardingFooter": "Next: pick a provider — about a minute.",
+  "onboardingContinue": "Connection setup",
+  "openAiSignInTitle": "Sign in with OpenAI",
+  "openAiConnectHeadline": "Connect your OpenAI account",
+  "openAiConnectBody": "PocketClaw uses OAuth 2.0 with PKCE (no client secret in the app). After you sign in, you will choose a ChatGPT model for chat.",
+  "openAiConfigSection": "Configuration",
+  "openAiConfiguredHint": "OAuth endpoints are set via build flags (see docs/OPENAI_OAUTH.md).",
+  "openAiNotConfiguredHint": "OAuth is not configured. Add --dart-define values for OPENAI_OAUTH_CLIENT_ID, OPENAI_OAUTH_AUTH_URL, and OPENAI_OAUTH_TOKEN_URL, or use the debug shortcut below.",
+  "openAiSignInButton": "Sign in with OpenAI",
+  "openAiOAuthDisabled": "OAuth not configured",
+  "openAiSimulateDebug": "Simulate OAuth (debug only)",
+  "openAiSignInFailed": "Sign-in failed: {error}",
+  "@openAiSignInFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "modelSelectTitle": "Choose a model",
+  "modelSelectHeadline": "ChatGPT models",
+  "modelSelectBody": "Pick which model PocketClaw uses for chat. You can change this later in settings.",
+  "modelSelectContinue": "Continue to PocketClaw",
+  "settingsTitle": "Settings",
+  "settingsSubtitle": "OpenAI account, model, and runtime.",
+  "settingsOpenAiSection": "OpenAI",
+  "settingsOpenAiSectionSubtitle": "OAuth (PKCE) plus optional API key for chat. Key takes precedence for api.openai.com.",
+  "settingsChatModel": "Chat model",
+  "settingsRuntimeLocation": "Runtime location",
+  "settingsWhereRunsTitle": "Where OpenClaw runs",
+  "settingsRuntimePrefs": "Runtime preferences",
+  "settingsAutoStartTitle": "Auto-start runtime",
+  "settingsAutoStartDesc": "Launch services when app opens",
+  "settingsAlertTitle": "Alert level",
+  "settingsAlertDesc": "Only notify on warnings and failures",
+  "settingsSyncTitle": "Sync frequency",
+  "settingsSyncDesc": "Push local state on a fixed cadence",
+  "settingsDataPrivacy": "Data and privacy",
+  "settingsDiagUploadTitle": "Diagnostics upload",
+  "settingsDiagUploadDesc": "Share anonymized crash and performance data",
+  "settingsClearCacheTitle": "Clear local cache",
+  "settingsClearCacheDesc": "Remove downloaded logs and temp snapshots",
+  "settingsClearCacheButton": "Clear",
+  "settingsClearCacheNotAvailable": "Not available in this version yet.",
+  "settingsSignOut": "Sign out of OpenAI",
+  "signOutDialogTitle": "Sign out",
+  "signOutDialogBody": "You will need to sign in with OpenAI again and pick a model.",
+  "signOutCancel": "Cancel",
+  "signOutConfirm": "Sign out",
+  "alertQuiet": "Quiet",
+  "alertModerate": "Moderate",
+  "alertVerbose": "Verbose",
+  "deploymentThisPhone": "This phone",
+  "deploymentLan": "Home network (LAN)",
+  "deploymentCloud": "OpenClaw Cloud",
+  "deploymentCustom": "Custom gateway",
+  "deploymentThisPhoneDesc": "Gateway targets this device (local-first).",
+  "deploymentLanDesc": "Gateway runs on another device on your Wi‑Fi or LAN.",
+  "deploymentCloudDesc": "Hosted OpenClaw runtime (remote).",
+  "deploymentCustomDesc": "Connect to your own gateway URL.",
+  "chatTitle": "Chat",
+  "chatSubtitle": "Ask about your setup, runtime, or diagnostics. Add an API key in Settings for live OpenAI replies.",
+  "chatAssistantSection": "Assistant",
+  "chatAssistantSubtitle": "Uses your API key when set; otherwise offline-style replies.",
+  "chatAssistantHint": "Try “runtime status”, attach a file, or tap the mic for speech-to-text.",
+  "chatMessageHint": "Message PocketClaw",
+  "chatAttachTooltip": "Attach file",
+  "chatSpeechTooltip": "Speech to text",
+  "chatSpeechStopTooltip": "Stop dictation",
+  "chatSendTooltip": "Send",
+  "chatAuthorYou": "You",
+  "chatAuthorAssistant": "PocketClaw",
+  "chatWelcomeBody": "Model/API: {model}. Gateway: {gateway}. Ask for runtime status, attach a file, or use the mic.",
+  "@chatWelcomeBody": {
+    "placeholders": {
+      "model": {},
+      "gateway": {}
+    }
+  },
+  "chatSpeechUnavailable": "Speech recognition is not available on this device.",
+  "chatOpenAiErrorFallback": "OpenAI: {error} — using mock reply.",
+  "@chatOpenAiErrorFallback": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatNoMessagePlaceholder": "(no message)",
+  "chatMockSayEmpty": "Say something or attach a file to get started.",
+  "chatMockSayText": "Say something to get started.",
+  "chatMockAttachmentIntro": "Received attachment “{name}” (mock: not uploaded). ",
+  "@chatMockAttachmentIntro": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "chatMockAttachmentAddContext": "Add a message if you want context.",
+  "chatMockRuntimeReply": "Gateway: {gateway}. Model/API: {model}. Runtime is {lifecycle}. {heartbeat} Queue depth: {depth}.",
+  "@chatMockRuntimeReply": {
+    "placeholders": {
+      "gateway": {},
+      "model": {},
+      "lifecycle": {},
+      "heartbeat": {},
+      "depth": {}
+    }
+  },
+  "chatMockDiagReply": "Diagnostics has {count} recent events. Open the Diagnostics tab for details.",
+  "@chatMockDiagReply": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "chatMockHello": "Hi. Ask me about runtime status or diagnostics.",
+  "chatMockDefault": "Got it. Try: “runtime status” or “show diagnostics”.",
+  "lifecycleStoppedWord": "stopped",
+  "lifecycleStartingWord": "starting",
+  "lifecycleRunningWord": "running",
+  "lifecycleDegradedWord": "degraded",
+  "lifecycleErrorWord": "in error",
+  "runtimeTitle": "Runtime",
+  "runtimeSubtitle": "Control background activity and inspect live state.",
+  "runtimeStatusSection": "Runtime status",
+  "runtimeQuickActions": "Quick actions",
+  "runtimeStart": "Start runtime",
+  "runtimeRestart": "Restart runtime",
+  "runtimeHealthCheck": "Run health check",
+  "runtimeHealthChecking": "Checking…",
+  "runtimeQueuePause": "Pause queue",
+  "runtimeQueueResume": "Resume queue",
+  "runtimeStop": "Stop runtime",
+  "runtimeHealthChecks": "Health checks",
+  "runtimeNoChecksStopped": "No checks while runtime is stopped.",
+  "runtimeModeLine": "Mode: {mode}",
+  "@runtimeModeLine": {
+    "placeholders": {
+      "mode": {}
+    }
+  },
+  "runtimeQueueLine": "Queue: {depth} pending",
+  "@runtimeQueueLine": {
+    "placeholders": {
+      "depth": {}
+    }
+  },
+  "runtimeDotStopped": "Stopped",
+  "runtimeDotStarting": "Starting",
+  "runtimeDotHealthy": "Healthy",
+  "runtimeDotAttention": "Attention",
+  "runtimeDotError": "Error",
+  "diagnosticsTitle": "Diagnostics",
+  "diagnosticsSubtitle": "Inspect health, events, and runtime logs.",
+  "diagnosticsHealthSummary": "Health summary",
+  "diagnosticsChecksPassing": "Checks passing",
+  "diagnosticsActiveWarnings": "Active warnings",
+  "diagnosticsLastScan": "Last full scan",
+  "diagnosticsRecentEvents": "Recent events",
+  "diagnosticsNoEvents": "No events yet.",
+  "diagnosticsLogPreview": "Log preview",
+  "diagnosticsLogPreviewSubtitle": "Most recent entries",
+  "diagnosticsSummaryStopped": "Stopped",
+  "diagnosticsSummaryAttention": "Attention",
+  "diagnosticsSummaryHealthy": "Healthy",
+  "diagnosticsToday": "Today, {time}",
+  "@diagnosticsToday": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "diagnosticsDateTime": "{date} {time}",
+  "@diagnosticsDateTime": {
+    "placeholders": {
+      "date": {},
+      "time": {}
+    }
+  },
+  "openAiApiKeyTitle": "API key (optional)",
+  "openAiApiKeyBody": "For reliable access to api.openai.com, paste an API key from platform.openai.com/api-keys. Stored encrypted on device only; never logged.",
+  "openAiApiKeyHasSaved": "A key is saved. Enter a new one to replace it.",
+  "openAiApiKeyFieldLabel": "OpenAI API key",
+  "openAiApiKeyFieldHint": "sk-…",
+  "openAiApiKeySave": "Save key",
+  "openAiApiKeyRemove": "Remove key",
+  "openAiApiKeySaved": "API key saved on this device.",
+  "openAiApiKeyRemoved": "API key removed."
+}

@@ -1,17 +1,18 @@
 import 'dart:async' show Timer, unawaited;
 
-import 'package:flutter/foundation.dart';
-
 import '../models/diagnostic_event.dart';
 import '../models/provider_config_model.dart';
 import '../models/runtime_deployment_model.dart';
 import '../models/runtime_state_model.dart';
+import 'package:pocketclaw_flutter_app/l10n/app_localizations.dart';
+
 import '../persistence/app_prefs.dart';
+import 'runtime_client.dart';
 
 /// In-memory stand-in for future native/runtime integration.
 ///
 /// Drives [RuntimeScreen], [DiagnosticsScreen], and [ChatScreen] until real IPC exists.
-class MockRuntimeService extends ChangeNotifier {
+class MockRuntimeService extends RuntimeClient {
   MockRuntimeService({
     required ProviderConfigModel providerConfig,
     required RuntimeDeploymentModel deployment,
@@ -28,15 +29,21 @@ class MockRuntimeService extends ChangeNotifier {
 
   ProviderConfigModel _providerConfig;
 
+  @override
   ProviderConfigModel get providerConfig => _providerConfig;
 
   RuntimeDeploymentModel _deployment;
 
+  @override
   RuntimeDeploymentModel get deployment => _deployment;
 
+  @override
   bool autoStartRuntime;
+  @override
   String alertLevel;
+  @override
   String syncFrequencyLabel;
+  @override
   bool diagnosticsUploadEnabled;
 
   RuntimeStateModel _runtime = const RuntimeStateModel(
@@ -62,12 +69,16 @@ class MockRuntimeService extends ChangeNotifier {
 
   late final Timer _tickTimer;
 
+  @override
   RuntimeStateModel get runtimeState => _runtime;
 
+  @override
   List<DiagnosticEvent> get diagnosticEvents => List<DiagnosticEvent>.unmodifiable(_events);
 
+  @override
   DateTime? get lastHealthCheckAt => _lastHealthCheckAt;
 
+  @override
   String get logPreviewText {
     if (_logLines.isEmpty) {
       return 'No log lines yet.';
@@ -220,6 +231,7 @@ class MockRuntimeService extends ChangeNotifier {
   }
 
   /// Secondary line under runtime status (live while running/degraded).
+  @override
   String get heartbeatSubtitle {
     switch (_runtime.lifecycle) {
       case RuntimeLifecycle.stopped:
@@ -242,6 +254,7 @@ class MockRuntimeService extends ChangeNotifier {
     }
   }
 
+  @override
   Future<void> startRuntime() async {
     if (_runtime.lifecycle == RuntimeLifecycle.running) {
       return;
@@ -251,16 +264,19 @@ class MockRuntimeService extends ChangeNotifier {
     _applyLifecycle(RuntimeLifecycle.running);
   }
 
+  @override
   Future<void> stopRuntime() async {
     _applyLifecycle(RuntimeLifecycle.stopped);
     await Future<void>.delayed(const Duration(milliseconds: 200));
   }
 
+  @override
   Future<void> restartRuntime() async {
     await stopRuntime();
     await startRuntime();
   }
 
+  @override
   Future<void> runHealthCheck() async {
     if (_healthCheckRunning) {
       return;
@@ -280,6 +296,7 @@ class MockRuntimeService extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   void toggleQueuePaused() {
     _queuePaused = !_queuePaused;
     if (_runtime.lifecycle == RuntimeLifecycle.running) {
@@ -292,34 +309,41 @@ class MockRuntimeService extends ChangeNotifier {
     _appendLog(now, 'INFO', _queuePaused ? 'queue: paused' : 'queue: resumed');
   }
 
+  @override
   bool get queuePaused => _queuePaused;
 
+  @override
   bool get healthCheckInProgress => _healthCheckRunning;
 
+  @override
   void setAutoStart(bool value) {
     autoStartRuntime = value;
     notifyListeners();
     unawaited(_persistSettings());
   }
 
+  @override
   void setAlertLevel(String value) {
     alertLevel = value;
     notifyListeners();
     unawaited(_persistSettings());
   }
 
+  @override
   void setSyncFrequencyLabel(String value) {
     syncFrequencyLabel = value;
     notifyListeners();
     unawaited(_persistSettings());
   }
 
+  @override
   void setDiagnosticsUpload(bool value) {
     diagnosticsUploadEnabled = value;
     notifyListeners();
     unawaited(_persistSettings());
   }
 
+  @override
   void setProviderConfig(ProviderConfigModel value) {
     if (_providerConfig == value) {
       return;
@@ -332,6 +356,7 @@ class MockRuntimeService extends ChangeNotifier {
     unawaited(AppPrefs.saveProviderConfig(value));
   }
 
+  @override
   void setOpenAiChatModel(String openAiModelId) {
     setProviderConfig(
       ProviderConfigModel.fromSetup(
@@ -341,6 +366,7 @@ class MockRuntimeService extends ChangeNotifier {
     );
   }
 
+  @override
   void setDeployment(RuntimeDeploymentModel value) {
     if (_deployment.kind == value.kind) {
       return;
@@ -376,52 +402,61 @@ class MockRuntimeService extends ChangeNotifier {
   }
 
   /// Simple assistant reply for the mock chat (no network).
-  String mockAssistantReply(String userMessage, {String? attachmentName}) {
+  @override
+  String mockAssistantReply(
+    AppLocalizations l10n,
+    String userMessage, {
+    String? attachmentName,
+  }) {
     final String t = userMessage.toLowerCase().trim();
     final RuntimeStateModel s = _runtime;
     if (t.isEmpty && (attachmentName == null || attachmentName.isEmpty)) {
-      return 'Say something or attach a file to get started.';
+      return l10n.chatMockSayEmpty;
     }
     if (attachmentName != null && attachmentName.isNotEmpty) {
-      final String base =
-          'Received attachment “$attachmentName” (mock: not uploaded). ';
+      final String base = l10n.chatMockAttachmentIntro(attachmentName);
       if (t.isEmpty) {
-        return '${base}Add a message if you want context.';
+        return '$base${l10n.chatMockAttachmentAddContext}';
       }
-      return base + _mockReplyForText(t, s);
+      return base + _mockReplyForText(l10n, t, s);
     }
     if (t.isEmpty) {
-      return 'Say something to get started.';
+      return l10n.chatMockSayText;
     }
-    return _mockReplyForText(t, s);
+    return _mockReplyForText(l10n, t, s);
   }
 
-  String _mockReplyForText(String t, RuntimeStateModel s) {
+  String _mockReplyForText(AppLocalizations l10n, String t, RuntimeStateModel s) {
     if (t.contains('health') || t.contains('status') || t.contains('runtime')) {
-      return 'Gateway: ${_deployment.displayLabel}. Model/API: ${_providerConfig.displayLabel}. '
-          'Runtime is ${_lifecycleWord(s.lifecycle)}. $heartbeatSubtitle Queue depth: ${s.queueDepth}.';
+      return l10n.chatMockRuntimeReply(
+        _deployment.displayLabel,
+        _providerConfig.displayLabel,
+        _lifecycleWord(l10n, s.lifecycle),
+        heartbeatSubtitle,
+        s.queueDepth,
+      );
     }
     if (t.contains('diag') || t.contains('log') || t.contains('event')) {
-      return 'Diagnostics has ${_events.length} recent events. Open the Diagnostics tab for details.';
+      return l10n.chatMockDiagReply(_events.length);
     }
     if (t.contains('hello') || t.contains('hi')) {
-      return 'Hi. Ask me about runtime status or diagnostics.';
+      return l10n.chatMockHello;
     }
-    return 'Got it. Try: “runtime status” or “show diagnostics”.';
+    return l10n.chatMockDefault;
   }
 
-  String _lifecycleWord(RuntimeLifecycle l) {
+  String _lifecycleWord(AppLocalizations l10n, RuntimeLifecycle l) {
     switch (l) {
       case RuntimeLifecycle.stopped:
-        return 'stopped';
+        return l10n.lifecycleStoppedWord;
       case RuntimeLifecycle.starting:
-        return 'starting';
+        return l10n.lifecycleStartingWord;
       case RuntimeLifecycle.running:
-        return 'running';
+        return l10n.lifecycleRunningWord;
       case RuntimeLifecycle.degraded:
-        return 'degraded';
+        return l10n.lifecycleDegradedWord;
       case RuntimeLifecycle.error:
-        return 'in error';
+        return l10n.lifecycleErrorWord;
     }
   }
 
