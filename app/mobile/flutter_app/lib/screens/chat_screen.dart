@@ -1,9 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../services/mock_runtime_service.dart';
 import '../widgets/product_widgets.dart';
 
+class _ChatBubble {
+  const _ChatBubble({
+    required this.author,
+    required this.text,
+    required this.isAssistant,
+    required this.timestamp,
+  });
+
+  final String author;
+  final String text;
+  final bool isAssistant;
+  final String timestamp;
+}
+
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  const ChatScreen({super.key, required this.session});
+
+  final MockRuntimeService session;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -11,32 +28,89 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scroll = ScrollController();
 
-  static const List<_ChatMessage> _messages = <_ChatMessage>[
-    _ChatMessage(
-      author: 'PocketClaw',
-      text: 'Welcome back. Runtime is healthy and ready for your next command.',
-      isAssistant: true,
-      timestamp: '09:14',
-    ),
-    _ChatMessage(
-      author: 'You',
-      text: 'Run a quick status check and summarize anything unusual.',
-      isAssistant: false,
-      timestamp: '09:15',
-    ),
-    _ChatMessage(
-      author: 'PocketClaw',
-      text: 'No blockers detected. Queue depth is normal and latency is stable.',
-      isAssistant: true,
-      timestamp: '09:15',
-    ),
-  ];
+  late List<_ChatBubble> _messages;
+
+  @override
+  void initState() {
+    super.initState();
+    _messages = <_ChatBubble>[
+      _ChatBubble(
+        author: 'PocketClaw',
+        text:
+            'You are connected to ${widget.session.providerConfig.displayLabel}. '
+            'Ask for runtime status or diagnostics.',
+        isAssistant: true,
+        timestamp: _timeLabel(DateTime.now()),
+      ),
+    ];
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    _scroll.dispose();
     super.dispose();
+  }
+
+  String _timeLabel(DateTime t) {
+    final String h = t.hour.toString().padLeft(2, '0');
+    final String m = t.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  Future<void> _send() async {
+    final String text = _controller.text.trim();
+    if (text.isEmpty) {
+      return;
+    }
+    _controller.clear();
+    final DateTime now = DateTime.now();
+    setState(() {
+      _messages = <_ChatBubble>[
+        ..._messages,
+        _ChatBubble(
+          author: 'You',
+          text: text,
+          isAssistant: false,
+          timestamp: _timeLabel(now),
+        ),
+      ];
+    });
+    _scrollToEnd();
+
+    await Future<void>.delayed(const Duration(milliseconds: 450));
+    if (!mounted) {
+      return;
+    }
+    final String reply = widget.session.mockAssistantReply(text);
+    final DateTime replyAt = DateTime.now();
+    setState(() {
+      _messages = <_ChatBubble>[
+        ..._messages,
+        _ChatBubble(
+          author: 'PocketClaw',
+          text: reply,
+          isAssistant: true,
+          timestamp: _timeLabel(replyAt),
+        ),
+      ];
+    });
+    _scrollToEnd();
+  }
+
+  void _scrollToEnd() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scroll.hasClients) {
+        return;
+      }
+      _scroll.animateTo(
+        _scroll.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   @override
@@ -45,6 +119,7 @@ class _ChatScreenState extends State<ChatScreen> {
       children: <Widget>[
         Expanded(
           child: ListView(
+            controller: _scroll,
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
             children: <Widget>[
               const ScreenHeader(
@@ -54,8 +129,8 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               const SizedBox(height: 16),
               SectionCard(
-                title: 'Welcome',
-                subtitle: 'Early preview',
+                title: 'Assistant',
+                subtitle: 'Mock replies (no network yet)',
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -70,7 +145,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Text(
-                        'Start with a quick command like "show runtime health" or ask for a diagnostics summary.',
+                        'Try: “runtime status”, “diagnostics”, or ask for a quick health summary.',
                       ),
                     ),
                   ],
@@ -95,6 +170,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
+                    onSubmitted: (_) => _send(),
                     decoration: const InputDecoration(
                       hintText: 'Message PocketClaw',
                       border: OutlineInputBorder(),
@@ -106,7 +182,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 const SizedBox(width: 8),
                 FilledButton.icon(
-                  onPressed: () {},
+                  onPressed: _send,
                   icon: const Icon(Icons.send),
                   label: const Text('Send'),
                 ),
@@ -118,7 +194,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(_ChatMessage message) {
+  Widget _buildMessageBubble(_ChatBubble message) {
     return Align(
       alignment: message.isAssistant ? Alignment.centerLeft : Alignment.centerRight,
       child: ConstrainedBox(
@@ -151,18 +227,4 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-}
-
-class _ChatMessage {
-  const _ChatMessage({
-    required this.author,
-    required this.text,
-    required this.isAssistant,
-    required this.timestamp,
-  });
-
-  final String author;
-  final String text;
-  final bool isAssistant;
-  final String timestamp;
 }

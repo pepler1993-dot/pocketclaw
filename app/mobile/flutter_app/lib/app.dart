@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'flow/app_flow_controller.dart';
 import 'models/provider_config_model.dart';
+import 'persistence/app_prefs.dart';
 import 'screens/chat_screen.dart';
 import 'screens/diagnostics_screen.dart';
 import 'screens/onboarding_screen.dart';
@@ -35,11 +36,26 @@ class _AppEntryPoint extends StatefulWidget {
 class _AppEntryPointState extends State<_AppEntryPoint> {
   late final AppFlowController _flowController;
   MockRuntimeService? _session;
+  AppPrefsSnapshot? _prefs;
+  bool _ready = false;
 
   @override
   void initState() {
     super.initState();
     _flowController = AppFlowController();
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    final AppPrefsSnapshot snap = await AppPrefs.load();
+    _prefs = snap;
+    _flowController.hydrateFromPrefs(
+      setupComplete: snap.setupComplete,
+      selectedProvider: snap.selectedProvider,
+    );
+    if (mounted) {
+      setState(() => _ready = true);
+    }
   }
 
   @override
@@ -51,6 +67,12 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_ready) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return AnimatedBuilder(
       animation: _flowController,
       builder: (BuildContext context, Widget? child) {
@@ -66,10 +88,15 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
               onFinish: _flowController.completeSetup,
             );
           case AppFlowStep.mainShell:
+            final AppPrefsSnapshot snap = _prefs!;
             _session ??= MockRuntimeService(
               providerConfig: ProviderConfigModel.fromSelectionLabel(
                 _flowController.selectedProvider,
               ),
+              autoStartRuntime: snap.autoStartRuntime,
+              alertLevel: snap.alertLevel,
+              syncFrequencyLabel: snap.syncFrequencyLabel,
+              diagnosticsUploadEnabled: snap.diagnosticsUploadEnabled,
             );
             return _RootShell(session: _session!);
         }
@@ -96,9 +123,9 @@ class _RootShellState extends State<_RootShell> {
   void initState() {
     super.initState();
     _screens = <Widget>[
-      const ChatScreen(),
+      ChatScreen(session: widget.session),
       RuntimeScreen(session: widget.session),
-      const DiagnosticsScreen(),
+      DiagnosticsScreen(session: widget.session),
       SettingsScreen(session: widget.session),
     ];
   }
