@@ -332,6 +332,15 @@ class MockRuntimeService extends ChangeNotifier {
     unawaited(AppPrefs.saveProviderConfig(value));
   }
 
+  void setOpenAiChatModel(String openAiModelId) {
+    setProviderConfig(
+      ProviderConfigModel.fromSetup(
+        modelProfileLabel: openAiModelId,
+        apiConnectionLabel: ProviderConfigModel.apiOpenAiCompatible,
+      ),
+    );
+  }
+
   void setDeployment(RuntimeDeploymentModel value) {
     if (_deployment.kind == value.kind) {
       return;

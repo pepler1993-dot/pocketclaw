@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'flow/app_flow_controller.dart';
 import 'models/runtime_deployment_model.dart';
 import 'persistence/app_prefs.dart';
+import 'persistence/openai_token_store.dart';
 import 'screens/chat_screen.dart';
 import 'screens/diagnostics_screen.dart';
 import 'screens/onboarding_screen.dart';
-import 'screens/provider_setup_screen.dart';
+import 'screens/openai_login_screen.dart';
+import 'screens/openai_model_select_screen.dart';
 import 'screens/runtime_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/mock_runtime_service.dart';
@@ -48,14 +50,55 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
 
   Future<void> _bootstrap() async {
     final AppPrefsSnapshot snap = await AppPrefs.load();
+    bool hasToken = false;
+    try {
+      hasToken = await OpenAiTokenStore.hasAccessToken().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => false,
+      );
+    } catch (_) {
+      hasToken = false;
+    }
     _prefs = snap;
     _flowController.hydrateFromPrefs(
+      onboardingDone: snap.onboardingDone,
       setupComplete: snap.setupComplete,
+      openAiModelId: snap.openAiModelId,
+      hasOpenAiAccessToken: hasToken,
       providerConfig: snap.providerConfig,
       runtimeDeploymentLabel: snap.runtimeDeploymentLabel,
     );
     if (mounted) {
       setState(() => _ready = true);
+    }
+  }
+
+  Future<void> _signOutAndReset() async {
+    await OpenAiTokenStore.clearAll();
+    await AppPrefs.clearOpenAiSetup();
+    final AppPrefsSnapshot snap = await AppPrefs.load();
+    bool hasToken = false;
+    try {
+      hasToken = await OpenAiTokenStore.hasAccessToken().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => false,
+      );
+    } catch (_) {
+      hasToken = false;
+    }
+    _session?.dispose();
+    _session = null;
+    _prefs = snap;
+    _flowController.hydrateFromPrefs(
+      onboardingDone: snap.onboardingDone,
+      setupComplete: snap.setupComplete,
+      openAiModelId: snap.openAiModelId,
+      hasOpenAiAccessToken: hasToken,
+      providerConfig: snap.providerConfig,
+      runtimeDeploymentLabel: snap.runtimeDeploymentLabel,
+    );
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -82,16 +125,10 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
             return OnboardingScreen(
               onContinue: _flowController.continueFromOnboarding,
             );
-          case AppFlowStep.providerSetup:
-            return ProviderSetupScreen(
-              providerConfig: _flowController.providerConfig,
-              currentDeployment: _flowController.selectedDeployment,
-              onModelProfileChanged: _flowController.setModelProfile,
-              onApiConnectionChanged: _flowController.setApiConnection,
-              onCustomApiBaseUrlChanged: _flowController.setCustomApiBaseUrl,
-              onDeploymentChanged: _flowController.setDeployment,
-              onFinish: _flowController.completeSetup,
-            );
+          case AppFlowStep.openaiLogin:
+            return OpenAiLoginScreen(flow: _flowController);
+          case AppFlowStep.openaiModel:
+            return OpenAiModelSelectScreen(flow: _flowController);
           case AppFlowStep.mainShell:
             final AppPrefsSnapshot snap = _prefs!;
             _session ??= MockRuntimeService(
@@ -104,7 +141,10 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
               syncFrequencyLabel: snap.syncFrequencyLabel,
               diagnosticsUploadEnabled: snap.diagnosticsUploadEnabled,
             );
-            return _RootShell(session: _session!);
+            return _RootShell(
+              session: _session!,
+              onSignOut: _signOutAndReset,
+            );
         }
       },
     );
@@ -112,9 +152,13 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
 }
 
 class _RootShell extends StatefulWidget {
-  const _RootShell({required this.session});
+  const _RootShell({
+    required this.session,
+    required this.onSignOut,
+  });
 
   final MockRuntimeService session;
+  final Future<void> Function() onSignOut;
 
   @override
   State<_RootShell> createState() => _RootShellState();
@@ -132,7 +176,10 @@ class _RootShellState extends State<_RootShell> {
       ChatScreen(session: widget.session),
       RuntimeScreen(session: widget.session),
       DiagnosticsScreen(session: widget.session),
-      SettingsScreen(session: widget.session),
+      SettingsScreen(
+        session: widget.session,
+        onSignOut: widget.onSignOut,
+      ),
     ];
   }
 
@@ -142,7 +189,7 @@ class _RootShellState extends State<_RootShell> {
       body: SafeArea(child: _screens[_currentIndex]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
+        onDestinationSelected: (int index) {
           setState(() => _currentIndex = index);
         },
         destinations: const <NavigationDestination>[

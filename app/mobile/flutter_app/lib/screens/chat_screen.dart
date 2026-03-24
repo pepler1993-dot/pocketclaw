@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../services/mock_runtime_service.dart';
+import '../services/openai_chat_service.dart';
 import '../widgets/product_widgets.dart';
 
 class _ChatBubble {
@@ -183,10 +184,39 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!mounted) {
       return;
     }
-    final String reply = widget.session.mockAssistantReply(
-      text,
-      attachmentName: attachment,
-    );
+
+    String reply;
+    if (text.isNotEmpty) {
+      try {
+        final String? api = await OpenAiChatService.completeOrNull(
+          model: widget.session.providerConfig.modelProfileLabel,
+          userText: text,
+        );
+        if (api != null && api.isNotEmpty) {
+          reply = api;
+        } else {
+          reply = widget.session.mockAssistantReply(
+            text,
+            attachmentName: attachment,
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('OpenAI: $e — using mock reply.')),
+          );
+        }
+        reply = widget.session.mockAssistantReply(
+          text,
+          attachmentName: attachment,
+        );
+      }
+    } else {
+      reply = widget.session.mockAssistantReply(
+        text,
+        attachmentName: attachment,
+      );
+    }
     final DateTime replyAt = DateTime.now();
     setState(() {
       _messages = <_ChatBubble>[

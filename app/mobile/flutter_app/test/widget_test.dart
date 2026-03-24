@@ -7,10 +7,13 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('PocketClaw onboarding smoke test', (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'pc_onboarding_done': false,
+    });
 
     await tester.pumpWidget(const PocketClawApp());
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
 
     expect(find.textContaining('OpenClaw'), findsOneWidget);
     expect(find.text('Connection setup'), findsOneWidget);

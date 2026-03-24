@@ -1,74 +1,117 @@
 import 'package:flutter/material.dart';
 
-import '../models/provider_config_model.dart';
+import '../models/openai_chat_model_option.dart';
 import '../models/runtime_deployment_model.dart';
 import '../services/mock_runtime_service.dart';
 import '../widgets/product_widgets.dart';
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key, required this.session});
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({
+    super.key,
+    required this.session,
+    required this.onSignOut,
+  });
 
   final MockRuntimeService session;
-
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  late TextEditingController _customApiUrlController;
-
-  @override
-  void initState() {
-    super.initState();
-    _customApiUrlController = TextEditingController(
-      text: widget.session.providerConfig.customApiBaseUrl ?? '',
-    );
-  }
-
-  @override
-  void didUpdateWidget(covariant SettingsScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final String? newUrl = widget.session.providerConfig.customApiBaseUrl;
-    final String? oldUrl = oldWidget.session.providerConfig.customApiBaseUrl;
-    if (newUrl != oldUrl && newUrl != _customApiUrlController.text) {
-      _customApiUrlController.text = newUrl ?? '';
-    }
-  }
-
-  @override
-  void dispose() {
-    _customApiUrlController.dispose();
-    super.dispose();
-  }
-
-  void _applyProviderConfig(ProviderConfigModel next) {
-    widget.session.setProviderConfig(next);
-  }
+  final Future<void> Function() onSignOut;
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: widget.session,
+      listenable: session,
       builder: (BuildContext context, Widget? child) {
-        final MockRuntimeService session = widget.session;
-        final ProviderConfigModel p = session.providerConfig;
         final List<String> deploymentLabels = <String>[
           RuntimeDeploymentModel.labelThisPhone,
           RuntimeDeploymentModel.labelHomeNetworkLan,
           RuntimeDeploymentModel.labelOpenClawCloud,
           RuntimeDeploymentModel.labelCustomGateway,
         ];
-        final bool showCustomUrl = p.apiConnectionLabel == ProviderConfigModel.apiCustomBaseUrl;
+        final String rawModelId = session.providerConfig.modelProfileLabel;
+        final bool knownModel = OpenAiChatModelOption.defaults.any(
+          (OpenAiChatModelOption m) => m.id == rawModelId,
+        );
 
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
           children: <Widget>[
             const ScreenHeader(
               title: 'Settings',
-              subtitle: 'Tune behavior, notifications, and data collection.',
+              subtitle: 'OpenAI account, model, and runtime.',
               trailing: Icon(Icons.settings_outlined),
             ),
             const SizedBox(height: 16),
+            SectionCard(
+              title: 'OpenAI',
+              subtitle: 'Signed in via OAuth (PKCE). Chat uses your selected model.',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('Chat model', style: Theme.of(context).textTheme.titleSmall),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    value: rawModelId,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: <DropdownMenuItem<String>>[
+                      ...OpenAiChatModelOption.defaults.map(
+                        (OpenAiChatModelOption m) => DropdownMenuItem<String>(
+                          value: m.id,
+                          child: Text(m.label),
+                        ),
+                      ),
+                      if (!knownModel)
+                        DropdownMenuItem<String>(
+                          value: rawModelId,
+                          child: Text(rawModelId),
+                        ),
+                    ],
+                    onChanged: (String? value) {
+                      if (value == null) {
+                        return;
+                      }
+                      session.setOpenAiChatModel(value);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final bool? ok = await showDialog<bool>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Sign out'),
+                              content: const Text(
+                                'You will need to sign in with OpenAI again and pick a model.',
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                FilledButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Sign out'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        if (ok == true && context.mounted) {
+                          await onSignOut();
+                        }
+                      },
+                      icon: const Icon(Icons.logout),
+                      label: const Text('Sign out of OpenAI'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             SectionCard(
               title: 'Runtime location',
               child: Column(
@@ -97,105 +140,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         );
                       },
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            SectionCard(
-              title: 'Model & API',
-              subtitle: 'Shell-style: model first, then API routing',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text('Model', style: Theme.of(context).textTheme.titleSmall),
-                  const SizedBox(height: 6),
-                  DropdownButtonFormField<String>(
-                    value: p.modelProfileLabel,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    items: ProviderConfigModel.modelProfileLabels
-                        .map(
-                          (String m) => DropdownMenuItem<String>(
-                            value: m,
-                            child: Text(m),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (String? value) {
-                      if (value == null) {
-                        return;
-                      }
-                      _applyProviderConfig(
-                        ProviderConfigModel.fromSetup(
-                          modelProfileLabel: value,
-                          apiConnectionLabel: p.apiConnectionLabel,
-                          customApiBaseUrl: p.customApiBaseUrl,
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Text('API connection', style: Theme.of(context).textTheme.titleSmall),
-                  const SizedBox(height: 6),
-                  DropdownButtonFormField<String>(
-                    value: p.apiConnectionLabel,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    items: ProviderConfigModel.apiConnectionLabels
-                        .map(
-                          (String a) => DropdownMenuItem<String>(
-                            value: a,
-                            child: Text(a, overflow: TextOverflow.ellipsis),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (String? value) {
-                      if (value == null) {
-                        return;
-                      }
-                      _applyProviderConfig(
-                        ProviderConfigModel.fromSetup(
-                          modelProfileLabel: p.modelProfileLabel,
-                          apiConnectionLabel: value,
-                          customApiBaseUrl: value == ProviderConfigModel.apiCustomBaseUrl
-                              ? p.customApiBaseUrl
-                              : null,
-                        ),
-                      );
-                    },
-                  ),
-                  if (showCustomUrl) ...<Widget>[
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _customApiUrlController,
-                      onChanged: (String s) {
-                        _applyProviderConfig(
-                          ProviderConfigModel.fromSetup(
-                            modelProfileLabel: p.modelProfileLabel,
-                            apiConnectionLabel: p.apiConnectionLabel,
-                            customApiBaseUrl: s,
-                          ),
-                        );
-                      },
-                      decoration: const InputDecoration(
-                        labelText: 'Custom API base URL',
-                        hintText: 'https://api.example.com/v1',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                      ),
-                      keyboardType: TextInputType.url,
-                      autocorrect: false,
-                    ),
-                  ],
-                  const SizedBox(height: 4),
-                  Text(
-                    p.shortDescription,
-                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),

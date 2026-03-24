@@ -21,7 +21,7 @@ These are orthogonal: you can e.g. target a LAN gateway while still using a spec
 | Persistence (`pc_runtime_deployment`) | `lib/persistence/app_prefs.dart` — `AppPrefsSnapshot.runtimeDeploymentLabel`, `saveAfterSetup`, `saveRuntimeDeploymentLabel` |
 | Onboarding flow state | `lib/flow/app_flow_controller.dart` — `selectedDeployment`, `setDeployment`, `hydrateFromPrefs`, `completeSetup` |
 | Hydration + session wiring | `lib/app.dart` — passes `snap.runtimeDeploymentLabel` into the flow controller; builds `MockRuntimeService` with `deployment:` |
-| First-run setup UI | `lib/screens/provider_setup_screen.dart` — section “Where OpenClaw runs”, then “Model / API provider” |
+| First-run setup | OAuth sign-in (`openai_login_screen.dart`) then model choice (`openai_model_select_screen.dart`); runtime location remains in **Settings** (defaults to *This phone*). |
 | Settings | `lib/screens/settings_screen.dart` — “Runtime location” dropdown calling `session.setDeployment` |
 | Mock behavior | `lib/services/mock_runtime_service.dart` — seeds diagnostics, `modeLabel` while running/degraded, chat hints, prefs save on change |
 

@@ -49,5 +49,18 @@
 	<string>PocketClaw uses the microphone to turn your speech into text in chat.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>PocketClaw uses speech recognition to convert your voice to text in chat.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.pocketclaw.oauth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>pocketclaw</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
