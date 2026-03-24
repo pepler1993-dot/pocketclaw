@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'flow/app_flow_controller.dart';
 import 'models/provider_config_model.dart';
+import 'models/runtime_deployment_model.dart';
 import 'persistence/app_prefs.dart';
 import 'screens/chat_screen.dart';
 import 'screens/diagnostics_screen.dart';
@@ -52,6 +53,7 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
     _flowController.hydrateFromPrefs(
       setupComplete: snap.setupComplete,
       selectedProvider: snap.selectedProvider,
+      runtimeDeploymentLabel: snap.runtimeDeploymentLabel,
     );
     if (mounted) {
       setState(() => _ready = true);
@@ -84,7 +86,9 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
           case AppFlowStep.providerSetup:
             return ProviderSetupScreen(
               currentProvider: _flowController.selectedProvider,
+              currentDeployment: _flowController.selectedDeployment,
               onProviderChanged: _flowController.setProvider,
+              onDeploymentChanged: _flowController.setDeployment,
               onFinish: _flowController.completeSetup,
             );
           case AppFlowStep.mainShell:
@@ -92,6 +96,9 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
             _session ??= MockRuntimeService(
               providerConfig: ProviderConfigModel.fromSelectionLabel(
                 _flowController.selectedProvider,
+              ),
+              deployment: RuntimeDeploymentModel.fromSelectionLabel(
+                _flowController.selectedDeployment,
               ),
               autoStartRuntime: snap.autoStartRuntime,
               alertLevel: snap.alertLevel,

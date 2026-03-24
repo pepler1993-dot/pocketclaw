@@ -1,12 +1,14 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/provider_config_model.dart';
+import '../models/runtime_deployment_model.dart';
 
 /// Local key-value persistence until a real storage layer exists.
 class AppPrefsSnapshot {
   const AppPrefsSnapshot({
     required this.setupComplete,
     required this.selectedProvider,
+    required this.runtimeDeploymentLabel,
     required this.autoStartRuntime,
     required this.alertLevel,
     required this.syncFrequencyLabel,
@@ -15,6 +17,10 @@ class AppPrefsSnapshot {
 
   final bool setupComplete;
   final String selectedProvider;
+
+  /// Label for [RuntimeDeploymentModel.fromSelectionLabel].
+  final String runtimeDeploymentLabel;
+
   final bool autoStartRuntime;
   final String alertLevel;
   final String syncFrequencyLabel;
@@ -24,6 +30,7 @@ class AppPrefsSnapshot {
 abstract final class AppPrefs {
   static const String _kSetupComplete = 'pc_setup_complete';
   static const String _kSelectedProvider = 'pc_selected_provider';
+  static const String _kRuntimeDeployment = 'pc_runtime_deployment';
   static const String _kAutoStart = 'pc_auto_start_runtime';
   static const String _kAlertLevel = 'pc_alert_level';
   static const String _kSyncFreq = 'pc_sync_frequency';
@@ -35,6 +42,8 @@ abstract final class AppPrefs {
       setupComplete: p.getBool(_kSetupComplete) ?? false,
       selectedProvider:
           p.getString(_kSelectedProvider) ?? ProviderConfigModel.labelLocalRuntime,
+      runtimeDeploymentLabel: p.getString(_kRuntimeDeployment) ??
+          RuntimeDeploymentModel.labelThisPhone,
       autoStartRuntime: p.getBool(_kAutoStart) ?? true,
       alertLevel: p.getString(_kAlertLevel) ?? 'Moderate',
       syncFrequencyLabel: p.getString(_kSyncFreq) ?? '30s',
@@ -42,10 +51,19 @@ abstract final class AppPrefs {
     );
   }
 
-  static Future<void> saveAfterSetup({required String provider}) async {
+  static Future<void> saveAfterSetup({
+    required String provider,
+    required String runtimeDeploymentLabel,
+  }) async {
     final SharedPreferences p = await SharedPreferences.getInstance();
     await p.setBool(_kSetupComplete, true);
     await p.setString(_kSelectedProvider, provider);
+    await p.setString(_kRuntimeDeployment, runtimeDeploymentLabel);
+  }
+
+  static Future<void> saveRuntimeDeploymentLabel(String label) async {
+    final SharedPreferences p = await SharedPreferences.getInstance();
+    await p.setString(_kRuntimeDeployment, label);
   }
 
   static Future<void> saveRuntimeSettings({

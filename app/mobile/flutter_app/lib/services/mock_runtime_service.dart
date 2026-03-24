@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/diagnostic_event.dart';
 import '../models/provider_config_model.dart';
+import '../models/runtime_deployment_model.dart';
 import '../models/runtime_state_model.dart';
 import '../persistence/app_prefs.dart';
 
@@ -13,17 +14,22 @@ import '../persistence/app_prefs.dart';
 class MockRuntimeService extends ChangeNotifier {
   MockRuntimeService({
     required this.providerConfig,
+    required RuntimeDeploymentModel deployment,
     this.autoStartRuntime = true,
     this.alertLevel = 'Moderate',
     this.syncFrequencyLabel = '30s',
     this.diagnosticsUploadEnabled = true,
-  }) {
+  }) : _deployment = deployment {
     _tickTimer = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
     _seedDiagnostics();
     _applyLifecycle(RuntimeLifecycle.running);
   }
 
   final ProviderConfigModel providerConfig;
+
+  RuntimeDeploymentModel _deployment;
+
+  RuntimeDeploymentModel get deployment => _deployment;
 
   bool autoStartRuntime;
   String alertLevel;
@@ -68,8 +74,13 @@ class MockRuntimeService extends ChangeNotifier {
 
   void _seedDiagnostics() {
     final DateTime now = DateTime.now();
-    _appendEvent('INFO', 'runtime: session initialized (${providerConfig.displayLabel})');
+    _appendEvent(
+      'INFO',
+      'runtime: session initialized (${providerConfig.displayLabel}, ${_deployment.displayLabel})',
+    );
     _appendLog(now, 'INFO', 'runtime: session initialized');
+    _appendEvent('INFO', 'runtime: target ${_deployment.runtimeModeSummary}');
+    _appendLog(now, 'INFO', 'runtime: target ${_deployment.runtimeModeSummary}');
     _appendEvent('INFO', 'queue: processor idle, waiting for tasks');
     _appendLog(now, 'INFO', 'queue: processor idle');
   }
@@ -145,7 +156,7 @@ class MockRuntimeService extends ChangeNotifier {
           statusHeadline: 'Healthy',
           statusDetail: '',
           lastHeartbeat: now,
-          modeLabel: 'Active',
+          modeLabel: _deployment.runtimeModeSummary,
           workersSummary: '2 online, 0 restarting',
           queueDepth: _queuePaused ? 5 : 3,
           healthChecks: _defaultHealthChecks(degraded: false),
@@ -159,7 +170,7 @@ class MockRuntimeService extends ChangeNotifier {
           statusHeadline: 'Degraded',
           statusDetail: 'Some checks need attention.',
           lastHeartbeat: now,
-          modeLabel: 'Active',
+          modeLabel: _deployment.runtimeModeSummary,
           workersSummary: '2 online, 1 restarting',
           queueDepth: 6,
           healthChecks: _defaultHealthChecks(degraded: true),
@@ -306,6 +317,22 @@ class MockRuntimeService extends ChangeNotifier {
     unawaited(_persistSettings());
   }
 
+  void setDeployment(RuntimeDeploymentModel value) {
+    if (_deployment.kind == value.kind) {
+      return;
+    }
+    _deployment = value;
+    if (_runtime.lifecycle == RuntimeLifecycle.running ||
+        _runtime.lifecycle == RuntimeLifecycle.degraded) {
+      _runtime = _runtime.copyWith(modeLabel: value.runtimeModeSummary);
+    }
+    final DateTime now = DateTime.now();
+    _appendEvent('INFO', 'runtime: deployment set to ${value.displayLabel}');
+    _appendLog(now, 'INFO', 'runtime: deployment set to ${value.displayLabel}');
+    notifyListeners();
+    unawaited(AppPrefs.saveRuntimeDeploymentLabel(value.displayLabel));
+  }
+
   Future<void> _persistSettings() {
     return AppPrefs.saveRuntimeSettings(
       autoStartRuntime: autoStartRuntime,
@@ -332,7 +359,7 @@ class MockRuntimeService extends ChangeNotifier {
       return 'Say something to get started.';
     }
     if (t.contains('health') || t.contains('status') || t.contains('runtime')) {
-      return 'Runtime is ${_lifecycleWord(s.lifecycle)}. $heartbeatSubtitle Queue depth: ${s.queueDepth}.';
+      return 'Target: ${_deployment.displayLabel}. Runtime is ${_lifecycleWord(s.lifecycle)}. $heartbeatSubtitle Queue depth: ${s.queueDepth}.';
     }
     if (t.contains('diag') || t.contains('log') || t.contains('event')) {
       return 'Diagnostics has ${_events.length} recent events. Open the Diagnostics tab for details.';

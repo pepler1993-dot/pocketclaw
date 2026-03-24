@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/runtime_deployment_model.dart';
 import '../services/mock_runtime_service.dart';
 import '../widgets/product_widgets.dart';
 
@@ -14,6 +15,12 @@ class SettingsScreen extends StatelessWidget {
       listenable: session,
       builder: (BuildContext context, Widget? child) {
         final String providerLabel = session.providerConfig.displayLabel;
+        final List<String> deploymentLabels = <String>[
+          RuntimeDeploymentModel.labelThisPhone,
+          RuntimeDeploymentModel.labelHomeNetworkLan,
+          RuntimeDeploymentModel.labelOpenClawCloud,
+          RuntimeDeploymentModel.labelCustomGateway,
+        ];
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
           children: <Widget>[
@@ -23,6 +30,39 @@ class SettingsScreen extends StatelessWidget {
               trailing: Icon(Icons.settings_outlined),
             ),
             const SizedBox(height: 16),
+            SectionCard(
+              title: 'Runtime location',
+              child: Column(
+                children: <Widget>[
+                  _SettingRow(
+                    icon: Icons.smartphone_outlined,
+                    title: 'Where OpenClaw runs',
+                    description: session.deployment.shortDescription,
+                    trailing: DropdownButton<String>(
+                      value: session.deployment.displayLabel,
+                      underline: const SizedBox.shrink(),
+                      items: deploymentLabels
+                          .map(
+                            (String label) => DropdownMenuItem<String>(
+                              value: label,
+                              child: Text(label),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (String? value) {
+                        if (value == null) {
+                          return;
+                        }
+                        session.setDeployment(
+                          RuntimeDeploymentModel.fromSelectionLabel(value),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             SectionCard(
               title: 'Provider',
               child: Column(
