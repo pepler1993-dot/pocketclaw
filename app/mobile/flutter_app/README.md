@@ -38,3 +38,17 @@ flutter analyze
 flutter test
 flutter run
 ```
+
+### Windows Desktop (`flutter run -d windows`)
+
+Builds **need symlink support**. Enable **Entwicklermodus** (Developer Mode), then restart the terminal:
+
+```bat
+start ms-settings:developers
+```
+
+Details: **[docs/WINDOWS_DESKTOP.md](docs/WINDOWS_DESKTOP.md)** · helper script: [`scripts/open-developer-settings.ps1`](scripts/open-developer-settings.ps1).
+
+If the repo lives under **Nextcloud** and builds still fail, try a clone on a local **NTFS** path (sync can interfere with symlinks).
+
+**Web without symlinks:** `flutter run -d chrome` (see `.vscode/launch.json` → „PocketClaw (Chrome)“).
