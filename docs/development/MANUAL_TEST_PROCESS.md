@@ -71,7 +71,7 @@ Tab **Chat**.
 | C4.5 | **Mikrofon** (falls sichtbar/OS erlaubt) | Spracheingabe startet/stoppt ohne Crash; bei Fehler Snackbar (nicht stiller Absturz) |
 | C4.6 | Leere Eingabe senden | Sinnvolle Hinweis-Antwort oder kein harter Crash |
 
-*Hinweis:* Echte **OpenAI Chat Completions** nur mit gültigem **API-Key** in Settings und/oder nutzbarem OAuth-Token; sonst Mock- oder Fallback-Antworten laut `OpenAiChatService`.
+*Hinweis:* Live-Antworten laufen über **`UnifiedChatService`**: wenn **OpenClaw Gateway** in den Einstellungen aktiv ist (URL + Token + „Use gateway for chat“), geht Chat (inkl. **SSE-Streaming**) zum Gateway **`/v1/chat/completions`**; sonst direktes **OpenAI** mit API-Key/OAuth, sofern akzeptiert. Sonst Mock-/Fallback-Verhalten.
 
 ---
 
@@ -110,6 +110,7 @@ Tab **Settings**.
 |----|--------|-----------|
 | S7.1 | **Chat model** Dropdown | Änderung setzt Modell; Chat-Header/Provider-Label passt nach Wechsel (ggf. Tab wechseln) |
 | S7.1b | **Language** | Standard **English** (auch ohne gespeicherte Einstellung); optional **Deutsch**; **Systemstandard** nutzt die Gerätesprache mit Fallback auf Englisch. Änderung wirkt sofort; Einstellung bleibt nach App-Neustart erhalten. |
+| S7.1c | **OpenClaw Gateway** (Abschnitt unter OpenAI) | **Use gateway for chat** schaltbar; **Basis-URL** (z. B. `http://HOST:18789`); **Operator-Token**; **Speichern** persistiert Prefs + Token (Secure Storage); **Verbindung testen** → Snackbar Erfolg/Fehler (`/v1/models`); **WebSocket testen** → Snackbar bei `hello-ok` oder Fehlertext |
 | S7.2 | **API key (optional)** | Speichern → Snackbar „saved“; **Remove** → Key entfernt, Snackbar |
 | S7.3 | **Runtime location** | Jede Option wählbar; Runtime-Tab zeigt passendes Deployment-Label |
 | S7.4 | **Auto-start**, **Alert level**, **Sync frequency**, **Diagnostics upload** | Werte ändern, App stürzt nicht ab; bei erneutem Start persistiert (Spot-Check) |
@@ -142,7 +143,7 @@ Nach Durchlauf festhalten:
 
 - **Build:** Datum, Commit/Branch, `flutter --version`
 - **Gerät:** Emulator-Name/API oder Gerätemodell
-- **Tabelle:** Pro ID aus den Abschnitten 2–8 **Pass / Fail / N/A** + eine Zeile Notiz bei Fail (inkl. **S7.1b Language**, falls getestet)
+- **Tabelle:** Pro ID aus den Abschnitten 2–8 **Pass / Fail / N/A** + eine Zeile Notiz bei Fail (inkl. **S7.1b Language** / **S7.1c Gateway**, falls getestet)
 - **Analyzer/Test:** Ausgabe von `flutter analyze` / `flutter test` angehängt oder zusammengefasst
 
 ---

@@ -16,6 +16,8 @@ class AppPrefsSnapshot {
     required this.alertLevel,
     required this.syncFrequencyLabel,
     required this.diagnosticsUploadEnabled,
+    required this.useGatewayForChat,
+    required this.gatewayBaseUrl,
   });
 
   final bool onboardingDone;
@@ -31,6 +33,12 @@ class AppPrefsSnapshot {
   final String alertLevel;
   final String syncFrequencyLabel;
   final bool diagnosticsUploadEnabled;
+
+  /// When true and [gatewayBaseUrl] + secure token are set, chat uses the OpenClaw Gateway HTTP API.
+  final bool useGatewayForChat;
+
+  /// Normalized base URL (no trailing slash), e.g. `http://192.168.1.10:18789`.
+  final String gatewayBaseUrl;
 }
 
 abstract final class AppPrefs {
@@ -47,6 +55,8 @@ abstract final class AppPrefs {
   static const String _kSyncFreq = 'pc_sync_frequency';
   static const String _kDiagUpload = 'pc_diagnostics_upload';
   static const String _kLocale = 'pc_locale';
+  static const String _kUseGateway = 'pc_use_openclaw_gateway';
+  static const String _kGatewayBase = 'pc_gateway_base_url';
 
   /// Default UI language is English; optional German or system locale.
   static Future<AppLocalePreference> loadLocalePreference() async {
@@ -75,6 +85,8 @@ abstract final class AppPrefs {
       alertLevel: p.getString(_kAlertLevel) ?? 'Moderate',
       syncFrequencyLabel: p.getString(_kSyncFreq) ?? '30s',
       diagnosticsUploadEnabled: p.getBool(_kDiagUpload) ?? true,
+      useGatewayForChat: p.getBool(_kUseGateway) ?? false,
+      gatewayBaseUrl: p.getString(_kGatewayBase) ?? '',
     );
   }
 
@@ -164,5 +176,14 @@ abstract final class AppPrefs {
   static Future<void> setOnboardingDone() async {
     final SharedPreferences p = await SharedPreferences.getInstance();
     await p.setBool(_kOnboardingDone, true);
+  }
+
+  static Future<void> saveGatewayPrefs({
+    required bool useGatewayForChat,
+    required String gatewayBaseUrl,
+  }) async {
+    final SharedPreferences p = await SharedPreferences.getInstance();
+    await p.setBool(_kUseGateway, useGatewayForChat);
+    await p.setString(_kGatewayBase, gatewayBaseUrl.trim());
   }
 }

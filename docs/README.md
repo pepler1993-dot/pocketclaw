@@ -19,7 +19,9 @@ All product and engineering docs live under **`docs/`** (except the root `README
 ## Flutter app (code-adjacent)
 
 - App README: [`app/mobile/flutter_app/README.md`](../app/mobile/flutter_app/README.md)
+- OpenClaw Gateway (HTTP chat + WebSocket handshake): [`app/mobile/flutter_app/docs/GATEWAY_HTTP.md`](../app/mobile/flutter_app/docs/GATEWAY_HTTP.md)
 - Runtime deployment (implemented): [`app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md`](../app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md)
+- OpenAI OAuth: [`app/mobile/flutter_app/docs/OPENAI_OAUTH.md`](../app/mobile/flutter_app/docs/OPENAI_OAUTH.md)
 - Scaffold notes: [`app/mobile/flutter_app/docs/IMPLEMENTATION_NOTES.md`](../app/mobile/flutter_app/docs/IMPLEMENTATION_NOTES.md)
 
 ## Product
@@ -67,5 +69,5 @@ All product and engineering docs live under **`docs/`** (except the root `README
 
 ## Development & status
 
-- [PROJECT_STATUS.md](development/PROJECT_STATUS.md) — snapshot of what was done (2026-03-24)
+- [PROJECT_STATUS.md](development/PROJECT_STATUS.md) — project snapshot (updated with Flutter gateway work, 2026-03-25)
 - [AGENT_HANDOFF.md](development/AGENT_HANDOFF.md) — context for the next contributor/agent

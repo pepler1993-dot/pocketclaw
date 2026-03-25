@@ -1,6 +1,6 @@
 # PocketClaw Agent Handoff
 
-**Location:** `docs/development/AGENT_HANDOFF.md` (snapshot started 2026-03-24; update in place when context changes.)
+**Location:** `docs/development/AGENT_HANDOFF.md` (snapshot updated 2026-03-25; update in place when context changes.)
 
 ## Purpose
 This document is meant to let another agent take over the PocketClaw task quickly without losing context.
@@ -76,7 +76,7 @@ Important files:
 - `lib/screens/chat_screen.dart`
 - `lib/screens/runtime_screen.dart`
 - `lib/screens/diagnostics_screen.dart`
-- `lib/screens/settings_screen.dart`
+- `lib/screens/settings_screen.dart` (includes **`GatewaySettingsSection`** — OpenClaw Gateway URL, token, HTTP probe, WebSocket handshake test)
 
 ### Visual direction already applied
 - dark-first theme
@@ -197,6 +197,14 @@ Meaning:
 
 **Pushed to `origin/main`** (includes commit adding this wiring and `app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md`).
 
+### OpenClaw Gateway — HTTP chat + WebSocket handshake (2026-03)
+
+- **Chat:** `UnifiedChatService` routes to **`OpenClawGatewayChatService`** when gateway is enabled in prefs + token present; else **`OpenAiChatService`**. Both support **SSE streaming** for completions.
+- **Prefs / secure storage:** `AppPrefs` keys `pc_use_openclaw_gateway`, `pc_gateway_base_url`; **`GatewayTokenStore`** (`pc_openclaw_gateway_token`); **`DeviceIdentityStore`** for Ed25519 device keys used in WS `connect`.
+- **WebSocket:** `lib/services/openclaw_gateway_ws_client.dart` — `OpenClawGatewayWsClient.handshakeOnce` (challenge + 750 ms fallback, `hello-ok`).
+- **Utilities:** `openclaw_gateway_util.dart` (URL normalize, `http`→`ws`), `openclaw_device_auth_payload.dart` (v3 signing string), `openclaw_device_identity.dart` (Ed25519 via `package:cryptography`).
+- **Docs:** `app/mobile/flutter_app/docs/GATEWAY_HTTP.md`, updated **`docs/README.md`**, **`docs/planning/NEXT_STEPS.md`**, **`docs/development/MANUAL_TEST_PROCESS.md`**.
+
 ---
 
 ## Recommended next steps for the next agent
@@ -210,12 +218,9 @@ Validate the Flutter project on a machine with Flutter in `PATH`.
 4. Optional: `flutter build apk` (or platform of choice)
 
 ### Second priority
-Move from mock toward real OpenClaw/gateway integration.
+**Runtime:** add a second **`RuntimeClient`** implementation (or narrow bridge) for real gateway/Android IPC; keep **`MockRuntimeService`** until then.
 
-Suggested directions:
-- Define a narrow **runtime client interface** (connect, stream, control) and one implementation that still mocks.
-- LAN / custom gateway: URL fields and validation (UI + prefs) when product is ready.
-- Align with upstream OpenClaw gateway protocols when available.
+**Gateway (optional follow-ups):** persistent WebSocket session after `hello-ok` (RPC, events, reconnect); store **`deviceToken`** from `hello-ok` for retry flows like the upstream Control UI.
 
 ### Third priority
 Android background execution and real service wiring (per [`docs/android/`](../android/): `ANDROID_SERVICE_MODEL.md`, `ANDROID_IMPLEMENTATION_SEQUENCE.md`, etc.).
@@ -237,9 +242,10 @@ It now has:
 - substantial product/architecture documentation
 - an initialized Flutter project
 - a first branded UI shell with **runtime deployment** (phone-first default) and **provider** choices wired through prefs and the mock runtime
-- docs: `app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md`
+- **OpenClaw Gateway integration:** HTTP chat (`/v1/chat/completions` + SSE), optional **WebSocket `hello-ok` test**, gateway settings UI
+- docs: `app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md`, **`app/mobile/flutter_app/docs/GATEWAY_HTTP.md`**
 - a partially cleaned analysis/build path (re-verify with local Flutter)
 - installed Flutter/Android tooling on some hosts; **Windows dev environments may need Flutter on PATH** for CLI runs
 
 Immediate task for next agent:
-**run `flutter analyze` / `flutter test` (and optional APK build), then advance real gateway/runtime integration behind the existing abstractions.**
+**Run `flutter analyze` / `flutter test` (and optional APK build). Next product step: real `RuntimeClient` / Android runtime, or persistent gateway WebSocket session — see [`NEXT_STEPS.md`](../planning/NEXT_STEPS.md).**

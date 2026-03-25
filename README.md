@@ -57,11 +57,12 @@ Highlights:
 Code: **`app/mobile/flutter_app`**
 
 - [app/mobile/flutter_app/README.md](app/mobile/flutter_app/README.md)
+- OpenClaw Gateway (HTTP + WS handshake): [app/mobile/flutter_app/docs/GATEWAY_HTTP.md](app/mobile/flutter_app/docs/GATEWAY_HTTP.md)
 - Runtime deployment (feature doc): [app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md](app/mobile/flutter_app/docs/RUNTIME_DEPLOYMENT.md)
 
 ## Status
 
-Early implementation: Flutter shell with onboarding, chat, runtime/diagnostics (mock), settings, and persisted **runtime deployment** (phone-first default). Re-run `flutter analyze` / `flutter test` locally to validate.
+Flutter app: onboarding, **unified chat** (optional **OpenClaw Gateway** HTTP or direct OpenAI, **SSE** when authenticated), **WebSocket `hello-ok` test**, runtime/diagnostics (**mock**), settings, **DE/EN** UI, persisted **runtime deployment** (phone-first default). Re-run `flutter analyze` / `flutter test` locally to validate.
 
 ## Contributing
 

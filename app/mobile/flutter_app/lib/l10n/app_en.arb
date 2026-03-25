@@ -82,7 +82,7 @@
   "deploymentCloudDesc": "Hosted OpenClaw runtime (remote).",
   "deploymentCustomDesc": "Connect to your own gateway URL.",
   "chatTitle": "Chat",
-  "chatSubtitle": "Ask about your setup, runtime, or diagnostics. Add an API key in Settings for live OpenAI replies.",
+  "chatSubtitle": "Ask about your setup, runtime, or diagnostics. Use an OpenClaw Gateway or an OpenAI API key in Settings for live replies.",
   "chatAssistantSection": "Assistant",
   "chatAssistantSubtitle": "Uses your API key when set; otherwise offline-style replies.",
   "chatAssistantHint": "Try “runtime status”, attach a file, or tap the mic for speech-to-text.",
@@ -103,6 +103,53 @@
   "chatSpeechUnavailable": "Speech recognition is not available on this device.",
   "chatOpenAiErrorFallback": "OpenAI: {error} — using mock reply.",
   "@chatOpenAiErrorFallback": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatStreaming": "Replying…",
+  "chatBackendErrorFallback": "Chat backend: {error} — using offline reply.",
+  "@chatBackendErrorFallback": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "gatewaySectionTitle": "OpenClaw Gateway",
+  "gatewaySectionSubtitle": "Route chat through your gateway’s OpenAI-compatible HTTP API (e.g. port 18789). When enabled and configured, this overrides direct OpenAI.",
+  "gatewayUseForChat": "Use gateway for chat",
+  "gatewayUseForChatDesc": "Requires base URL and operator token. Priority over OpenAI API key / OAuth for chat.",
+  "gatewayBaseUrlLabel": "Gateway base URL",
+  "gatewayBaseUrlHint": "http://192.168.1.10:18789",
+  "gatewayTokenLabel": "Operator token",
+  "gatewayTokenHintSaved": "Token is saved on device. Enter a new value to replace it.",
+  "gatewayTokenHintEmpty": "Paste gateway auth token (see gateway docs).",
+  "gatewaySave": "Save gateway settings",
+  "gatewayTest": "Test connection",
+  "gatewayTestSuccess": "Gateway OK — {count} model(s) reported.",
+  "@gatewayTestSuccess": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "gatewayTestFail": "Connection failed: {detail}",
+  "@gatewayTestFail": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "gatewaySaved": "Gateway settings saved.",
+  "gatewayErrNoUrl": "Enter a gateway base URL first.",
+  "gatewayErrNoToken": "Enter or save an operator token first.",
+  "gatewayWsTest": "Test WebSocket (hello-ok)",
+  "gatewayWsSuccess": "WebSocket hello-ok — protocol {protocol}, server {server}.",
+  "@gatewayWsSuccess": {
+    "placeholders": {
+      "protocol": {},
+      "server": {}
+    }
+  },
+  "gatewayWsFail": "WebSocket: {error}",
+  "@gatewayWsFail": {
     "placeholders": {
       "error": {}
     }

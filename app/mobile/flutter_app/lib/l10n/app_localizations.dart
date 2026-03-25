@@ -563,7 +563,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Ask about your setup, runtime, or diagnostics. Add an API key in Settings for live OpenAI replies.'**
+  /// **'Ask about your setup, runtime, or diagnostics. Use an OpenClaw Gateway or an OpenAI API key in Settings for live replies.'**
   String get chatSubtitle;
 
   /// No description provided for @chatAssistantSection.
@@ -643,6 +643,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'OpenAI: {error} — using mock reply.'**
   String chatOpenAiErrorFallback(Object error);
+
+  /// No description provided for @chatStreaming.
+  ///
+  /// In en, this message translates to:
+  /// **'Replying…'**
+  String get chatStreaming;
+
+  /// No description provided for @chatBackendErrorFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat backend: {error} — using offline reply.'**
+  String chatBackendErrorFallback(Object error);
+
+  /// No description provided for @gatewaySectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenClaw Gateway'**
+  String get gatewaySectionTitle;
+
+  /// No description provided for @gatewaySectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Route chat through your gateway’s OpenAI-compatible HTTP API (e.g. port 18789). When enabled and configured, this overrides direct OpenAI.'**
+  String get gatewaySectionSubtitle;
+
+  /// No description provided for @gatewayUseForChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Use gateway for chat'**
+  String get gatewayUseForChat;
+
+  /// No description provided for @gatewayUseForChatDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Requires base URL and operator token. Priority over OpenAI API key / OAuth for chat.'**
+  String get gatewayUseForChatDesc;
+
+  /// No description provided for @gatewayBaseUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gateway base URL'**
+  String get gatewayBaseUrlLabel;
+
+  /// No description provided for @gatewayBaseUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'http://192.168.1.10:18789'**
+  String get gatewayBaseUrlHint;
+
+  /// No description provided for @gatewayTokenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Operator token'**
+  String get gatewayTokenLabel;
+
+  /// No description provided for @gatewayTokenHintSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Token is saved on device. Enter a new value to replace it.'**
+  String get gatewayTokenHintSaved;
+
+  /// No description provided for @gatewayTokenHintEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste gateway auth token (see gateway docs).'**
+  String get gatewayTokenHintEmpty;
+
+  /// No description provided for @gatewaySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save gateway settings'**
+  String get gatewaySave;
+
+  /// No description provided for @gatewayTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test connection'**
+  String get gatewayTest;
+
+  /// No description provided for @gatewayTestSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Gateway OK — {count} model(s) reported.'**
+  String gatewayTestSuccess(Object count);
+
+  /// No description provided for @gatewayTestFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed: {detail}'**
+  String gatewayTestFail(Object detail);
+
+  /// No description provided for @gatewaySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Gateway settings saved.'**
+  String get gatewaySaved;
+
+  /// No description provided for @gatewayErrNoUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a gateway base URL first.'**
+  String get gatewayErrNoUrl;
+
+  /// No description provided for @gatewayErrNoToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter or save an operator token first.'**
+  String get gatewayErrNoToken;
+
+  /// No description provided for @gatewayWsTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test WebSocket (hello-ok)'**
+  String get gatewayWsTest;
+
+  /// No description provided for @gatewayWsSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'WebSocket hello-ok — protocol {protocol}, server {server}.'**
+  String gatewayWsSuccess(Object protocol, Object server);
+
+  /// No description provided for @gatewayWsFail.
+  ///
+  /// In en, this message translates to:
+  /// **'WebSocket: {error}'**
+  String gatewayWsFail(Object error);
 
   /// No description provided for @chatNoMessagePlaceholder.
   ///

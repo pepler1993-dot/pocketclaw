@@ -19,10 +19,13 @@ Redirect URI defaults to **`pocketclaw://oauth-callback`** (registered in Androi
 
 **API key (Settings → OpenAI):** optional `sk-…` stored in **secure storage**; Chat Completions **prefer this** over the OAuth access token so local dev can get real replies without a proxy.
 
+**OpenClaw Gateway (Settings → OpenClaw Gateway):** optional **base URL + operator token**. When **Use gateway for chat** is on, chat (including **streaming**) goes to the gateway’s **`/v1/chat/completions`** and overrides direct OpenAI. **Test WebSocket** runs a real **`connect` → `hello-ok`** handshake (Ed25519 device identity + protocol 3). See **[docs/GATEWAY_HTTP.md](docs/GATEWAY_HTTP.md)**.
+
 **Note:** OAuth-only tokens are often **not** accepted by `api.openai.com`. Production should prefer a **backend**; the in-app key path is for dev/personal use.
 
 ## Documentation
 
+- **[docs/GATEWAY_HTTP.md](docs/GATEWAY_HTTP.md)** — HTTP gateway URL + token, probe, chat priority
 - **[docs/RUNTIME_DEPLOYMENT.md](docs/RUNTIME_DEPLOYMENT.md)** — gateway deployment (mock-backed)
 - **[docs/OPENAI_OAUTH.md](docs/OPENAI_OAUTH.md)** — OAuth build flags
 - **[docs/IMPLEMENTATION_NOTES.md](docs/IMPLEMENTATION_NOTES.md)** — scaffold notes

@@ -6,7 +6,7 @@ import 'package:pocketclaw_flutter_app/l10n/app_localizations.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../services/runtime_client.dart';
-import '../services/openai_chat_service.dart';
+import '../services/unified_chat_service.dart';
 import '../widgets/product_widgets.dart';
 
 class _ChatBubble {
@@ -43,6 +43,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _speechReady = false;
   String? _pendingAttachmentName;
   bool _welcomeSeeded = false;
+  /// True while an SSE stream (gateway or OpenAI) updates the last assistant bubble.
+  bool _liveStreaming = false;
 
   @override
   void initState() {
@@ -199,35 +201,175 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    String reply;
-    if (text.isNotEmpty) {
+    if (text.isEmpty) {
+      final String reply = widget.session.mockAssistantReply(
+        l10n,
+        text,
+        attachmentName: attachment,
+      );
+      final DateTime replyAt = DateTime.now();
+      setState(() {
+        _messages = <_ChatBubble>[
+          ..._messages,
+          _ChatBubble(
+            author: l10n.chatAuthorAssistant,
+            text: reply,
+            isAssistant: true,
+            timestamp: _timeLabel(replyAt),
+          ),
+        ];
+      });
+      _scrollToEnd();
+      return;
+    }
+
+    final bool canStreamLive = await UnifiedChatService.hasLiveStreamBackend();
+    if (canStreamLive) {
+      final DateTime placeholderAt = DateTime.now();
+      setState(() {
+        _liveStreaming = true;
+        _messages = <_ChatBubble>[
+          ..._messages,
+          _ChatBubble(
+            author: l10n.chatAuthorAssistant,
+            text: '',
+            isAssistant: true,
+            timestamp: _timeLabel(placeholderAt),
+          ),
+        ];
+      });
+      _scrollToEnd();
+
+      String accumulated = '';
       try {
-        final String? api = await OpenAiChatService.completeOrNull(
+        await for (
+            final String acc in UnifiedChatService.streamCompletionAccumulated(
           model: widget.session.providerConfig.modelProfileLabel,
           userText: text,
-        );
-        if (api != null && api.isNotEmpty) {
-          reply = api;
-        } else {
-          reply = widget.session.mockAssistantReply(
-            l10n,
-            text,
-            attachmentName: attachment,
-          );
+        )) {
+          if (!mounted) {
+            return;
+          }
+          accumulated = acc;
+          setState(() {
+            final List<_ChatBubble> next = List<_ChatBubble>.from(_messages);
+            next[next.length - 1] = _ChatBubble(
+              author: l10n.chatAuthorAssistant,
+              text: acc,
+              isAssistant: true,
+              timestamp: _timeLabel(placeholderAt),
+            );
+            _messages = next;
+          });
+          _scrollToEnd();
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.chatOpenAiErrorFallback(e.toString()))),
+            SnackBar(content: Text(l10n.chatBackendErrorFallback(e.toString()))),
           );
         }
+        String? fallback;
+        try {
+          fallback = await UnifiedChatService.completeOrNull(
+            model: widget.session.providerConfig.modelProfileLabel,
+            userText: text,
+          );
+        } catch (_) {
+          fallback = null;
+        }
+        accumulated = (fallback != null && fallback.isNotEmpty)
+            ? fallback
+            : widget.session.mockAssistantReply(
+                l10n,
+                text,
+                attachmentName: attachment,
+              );
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          final List<_ChatBubble> next = List<_ChatBubble>.from(_messages);
+          next[next.length - 1] = _ChatBubble(
+            author: l10n.chatAuthorAssistant,
+            text: accumulated,
+            isAssistant: true,
+            timestamp: _timeLabel(placeholderAt),
+          );
+          _messages = next;
+        });
+      } finally {
+        if (mounted) {
+          setState(() => _liveStreaming = false);
+        } else {
+          _liveStreaming = false;
+        }
+      }
+
+      if (!mounted) {
+        return;
+      }
+      if (accumulated.isEmpty) {
+        String? fallback;
+        try {
+          fallback = await UnifiedChatService.completeOrNull(
+            model: widget.session.providerConfig.modelProfileLabel,
+            userText: text,
+          );
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.chatBackendErrorFallback(e.toString()))),
+            );
+          }
+          fallback = null;
+        }
+        final String finalText = (fallback != null && fallback.isNotEmpty)
+            ? fallback
+            : widget.session.mockAssistantReply(
+                l10n,
+                text,
+                attachmentName: attachment,
+              );
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          final List<_ChatBubble> next = List<_ChatBubble>.from(_messages);
+          next[next.length - 1] = _ChatBubble(
+            author: l10n.chatAuthorAssistant,
+            text: finalText,
+            isAssistant: true,
+            timestamp: _timeLabel(placeholderAt),
+          );
+          _messages = next;
+        });
+      }
+      _scrollToEnd();
+      return;
+    }
+
+    String reply;
+    try {
+      final String? api = await UnifiedChatService.completeOrNull(
+        model: widget.session.providerConfig.modelProfileLabel,
+        userText: text,
+      );
+      if (api != null && api.isNotEmpty) {
+        reply = api;
+      } else {
         reply = widget.session.mockAssistantReply(
           l10n,
           text,
           attachmentName: attachment,
         );
       }
-    } else {
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.chatBackendErrorFallback(e.toString()))),
+        );
+      }
       reply = widget.session.mockAssistantReply(
         l10n,
         text,
@@ -429,7 +571,31 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(height: 6),
                 ],
-                Text(message.text),
+                if (message.isAssistant &&
+                    message.text.isEmpty &&
+                    _liveStreaming)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          AppLocalizations.of(context)!.chatStreaming,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  Text(message.text),
                 const SizedBox(height: 8),
                 Text(
                   message.timestamp,

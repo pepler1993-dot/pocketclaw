@@ -260,7 +260,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get chatSubtitle =>
-      'Fragen zu Setup, Laufzeit oder Diagnose. API-Schlüssel in den Einstellungen für echte OpenAI-Antworten.';
+      'Fragen zu Setup, Laufzeit oder Diagnose. OpenClaw-Gateway oder OpenAI-API-Schlüssel in den Einstellungen für echte Antworten.';
 
   @override
   String get chatAssistantSection => 'Assistent';
@@ -306,6 +306,84 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String chatOpenAiErrorFallback(Object error) {
     return 'OpenAI: $error — Fallback-Antwort.';
+  }
+
+  @override
+  String get chatStreaming => 'Antwort läuft…';
+
+  @override
+  String chatBackendErrorFallback(Object error) {
+    return 'Chat-Backend: $error — Offline-Antwort.';
+  }
+
+  @override
+  String get gatewaySectionTitle => 'OpenClaw-Gateway';
+
+  @override
+  String get gatewaySectionSubtitle =>
+      'Chat über die OpenAI-kompatible HTTP-API deines Gateways (z. B. Port 18789). Wenn aktiv und konfiguriert, hat das Vorrang vor direktem OpenAI.';
+
+  @override
+  String get gatewayUseForChat => 'Gateway für Chat nutzen';
+
+  @override
+  String get gatewayUseForChatDesc =>
+      'Benötigt Basis-URL und Operator-Token. Hat Vorrang vor OpenAI-API-Key / OAuth im Chat.';
+
+  @override
+  String get gatewayBaseUrlLabel => 'Gateway-Basis-URL';
+
+  @override
+  String get gatewayBaseUrlHint => 'http://192.168.1.10:18789';
+
+  @override
+  String get gatewayTokenLabel => 'Operator-Token';
+
+  @override
+  String get gatewayTokenHintSaved =>
+      'Token ist auf dem Gerät gespeichert. Neuen Wert eintragen zum Ersetzen.';
+
+  @override
+  String get gatewayTokenHintEmpty =>
+      'Gateway-Auth-Token einfügen (siehe Gateway-Doku).';
+
+  @override
+  String get gatewaySave => 'Gateway-Einstellungen speichern';
+
+  @override
+  String get gatewayTest => 'Verbindung testen';
+
+  @override
+  String gatewayTestSuccess(Object count) {
+    return 'Gateway OK — $count Modell(e) gemeldet.';
+  }
+
+  @override
+  String gatewayTestFail(Object detail) {
+    return 'Verbindung fehlgeschlagen: $detail';
+  }
+
+  @override
+  String get gatewaySaved => 'Gateway-Einstellungen gespeichert.';
+
+  @override
+  String get gatewayErrNoUrl => 'Zuerst eine Gateway-Basis-URL eintragen.';
+
+  @override
+  String get gatewayErrNoToken =>
+      'Zuerst ein Operator-Token eintragen oder speichern.';
+
+  @override
+  String get gatewayWsTest => 'WebSocket testen (hello-ok)';
+
+  @override
+  String gatewayWsSuccess(Object protocol, Object server) {
+    return 'WebSocket hello-ok — Protokoll $protocol, Server $server.';
+  }
+
+  @override
+  String gatewayWsFail(Object error) {
+    return 'WebSocket: $error';
   }
 
   @override

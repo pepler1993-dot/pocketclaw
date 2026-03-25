@@ -12,6 +12,56 @@ import '../persistence/openai_token_store.dart';
 class OpenAiChatService {
   static const String _completionsUrl = 'https://api.openai.com/v1/chat/completions';
 
+  /// Whether [completeOrNull] / streaming can authenticate (API key or non-mock OAuth token).
+  static Future<bool> hasBearerForChat() async {
+    final String? apiKey = await OpenAiTokenStore.readApiKey();
+    final String? keyOrToken = await _resolveBearer(apiKey);
+    return keyOrToken != null && keyOrToken.isNotEmpty;
+  }
+
+  /// Server-sent events stream (`stream: true`); each event is **accumulated** assistant text so far.
+  static Stream<String> streamCompletionAccumulated({
+    required String model,
+    required String userText,
+  }) async* {
+    final String? apiKey = await OpenAiTokenStore.readApiKey();
+    final String? keyOrToken = await _resolveBearer(apiKey);
+    if (keyOrToken == null || keyOrToken.isEmpty) {
+      return;
+    }
+
+    final http.Client client = http.Client();
+    try {
+      final http.Request request = http.Request('POST', Uri.parse(_completionsUrl));
+      request.headers['Content-Type'] = 'application/json';
+      request.headers['Authorization'] = 'Bearer $keyOrToken';
+      request.body = jsonEncode(<String, Object?>{
+        'model': model,
+        'messages': <Map<String, String>>[
+          <String, String>{'role': 'user', 'content': userText},
+        ],
+        'stream': true,
+      });
+      final http.StreamedResponse response = await client.send(request);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        final String body = await response.stream.bytesToString();
+        throw OpenAiHttpException(response.statusCode, body);
+      }
+
+      String accumulated = '';
+      await for (final String line
+          in response.stream.transform(utf8.decoder).transform(const LineSplitter())) {
+        final String? delta = openAiChatCompletionDeltaFromSseLine(line);
+        if (delta != null && delta.isNotEmpty) {
+          accumulated += delta;
+          yield accumulated;
+        }
+      }
+    } finally {
+      client.close();
+    }
+  }
+
   static Future<String?> completeOrNull({
     required String model,
     required String userText,
@@ -63,6 +113,39 @@ class OpenAiChatService {
       return null;
     }
     return token;
+  }
+}
+
+/// Parses one SSE line from OpenAI chat completions streaming.
+/// Returns a **non-empty** content delta, or `null` for ignorable lines / `[DONE]`.
+String? openAiChatCompletionDeltaFromSseLine(String line) {
+  final String trimmed = line.trim();
+  if (trimmed.isEmpty) {
+    return null;
+  }
+  const String prefix = 'data:';
+  if (!trimmed.startsWith(prefix)) {
+    return null;
+  }
+  final String payload = trimmed.substring(prefix.length).trim();
+  if (payload == '[DONE]') {
+    return null;
+  }
+  try {
+    final Map<String, dynamic> json = jsonDecode(payload) as Map<String, dynamic>;
+    final List<dynamic>? choices = json['choices'] as List<dynamic>?;
+    if (choices == null || choices.isEmpty) {
+      return null;
+    }
+    final Map<String, dynamic> first = choices.first as Map<String, dynamic>;
+    final Map<String, dynamic>? delta = first['delta'] as Map<String, dynamic>?;
+    final String? content = delta?['content'] as String?;
+    if (content == null || content.isEmpty) {
+      return null;
+    }
+    return content;
+  } catch (_) {
+    return null;
   }
 }
 

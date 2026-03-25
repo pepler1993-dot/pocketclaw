@@ -176,6 +176,19 @@ For PocketClaw, the most relevant immediate result is:
 
 ---
 
+## 8a. Update 2026-03-25 — OpenClaw Gateway (HTTP + WebSocket)
+
+The Flutter app now integrates the **OpenClaw Gateway** at the HTTP layer and can prove **WebSocket control-plane** connectivity:
+
+- **Unified chat routing** (`UnifiedChatService`): optional **gateway base URL + operator token** (secure storage). When enabled, chat uses the gateway’s OpenAI-compatible **`/v1/chat/completions`** (and SSE streaming) with priority over direct `api.openai.com`.
+- **Settings → OpenClaw Gateway:** toggle, URL, token, **Save**, **Test connection** (`GET /v1/models`), **Test WebSocket** (`connect` → `hello-ok`, protocol 3, Ed25519 device identity persisted on device).
+- **Android:** cleartext HTTP allowed for LAN gateways (`usesCleartextTraffic`); production should prefer TLS or VPN where possible.
+- **Documentation:** [`app/mobile/flutter_app/docs/GATEWAY_HTTP.md`](../../app/mobile/flutter_app/docs/GATEWAY_HTTP.md); repo index and [`NEXT_STEPS.md`](../planning/NEXT_STEPS.md) updated.
+
+Runtime/diagnostics **UI remains mock-backed**; next large step is still real on-device or remote runtime control (see `docs/android/`).
+
+---
+
 ## 9. Recommended next order
 
 See the living document **[`docs/planning/NEXT_STEPS.md`](../planning/NEXT_STEPS.md)** (replaces older `NEXT_STEPS_PRIORITY` / `NEXT_IMPLEMENTATION_STEP` files).
